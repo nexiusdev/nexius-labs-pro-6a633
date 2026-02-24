@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 
 const pages = [
   { href: "/", label: "Home" },
+  { href: "/roles", label: "Roles" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/why-nexius", label: "Why Nexius" },
 ];

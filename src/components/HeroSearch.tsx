@@ -64,10 +64,11 @@ export default function HeroSearch({ onSearch }: HeroSearchProps) {
                   className="bg-slate-50 border-l border-slate-200 px-4 py-3 text-slate-600 text-sm outline-none cursor-pointer"
                 >
                   <option value="All">All Departments</option>
+                  <option value="Finance">Finance</option>
                   <option value="CRM">CRM</option>
                   <option value="ERP">ERP</option>
-                  <option value="Finance">Finance</option>
                   <option value="HRMS">HRMS</option>
+                  <option value="Operations">Operations</option>
                 </select>
                 <button
                   onClick={() => onSearch(searchQuery, department)}
@@ -78,7 +79,7 @@ export default function HeroSearch({ onSearch }: HeroSearchProps) {
                 </button>
               </div>
               <p className="text-sm text-slate-400 mt-3">
-                16 digital roles available
+                20 digital roles available
               </p>
             </div>
           </div>

@@ -16,6 +16,7 @@ import {
   Users,
   BarChart3,
   Building2,
+  Settings,
   Activity,
   ArrowRight,
 } from "lucide-react";
@@ -30,6 +31,7 @@ const departmentIcons: Record<Department, typeof Briefcase> = {
   ERP: Building2,
   Finance: BarChart3,
   HRMS: Briefcase,
+  Operations: Settings,
 };
 
 export default function RoleResults({

@@ -24,8 +24,8 @@ export default function Footer() {
           <div className="mt-8 lg:mt-0">
             <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
             <nav className="space-y-0">
-              <Link href="/" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
-                Digital Roles
+              <Link href="/roles" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+                Role Catalog
               </Link>
               <Link href="/how-it-works" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 How It Works
