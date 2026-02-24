@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   workflows,
   governanceOptions,
@@ -15,8 +15,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
-
-const CARDS_PER_CTA = 9;
 
 function CustomRoleCTA() {
   return (
@@ -217,16 +215,10 @@ export default function RoleCatalog() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {filtered.map((role, index) => (
-            <React.Fragment key={role.id}>
-              <AnimateOnScroll animation="fade-up" delay={Math.min(index * 50, 300)}>
-                <RoleCard role={role} />
-              </AnimateOnScroll>
-              {(index + 1) % CARDS_PER_CTA === 0 && index + 1 < filtered.length && (
-                <CustomRoleCTA />
-              )}
-            </React.Fragment>
+            <AnimateOnScroll key={role.id} animation="fade-up" delay={Math.min(index * 50, 300)}>
+              <RoleCard role={role} />
+            </AnimateOnScroll>
           ))}
-          {/* Always show CTA at the end */}
           <CustomRoleCTA />
         </div>
       )}
