@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Mic, Trash2, ChevronDown, ChevronUp, Clock, MessageCircle } from "lucide-react";
 import { useInterviewHistory } from "@/context/InterviewHistoryContext";
-import { getRoleById, departmentColors } from "@/data/roles";
+import { getRoleById, workflowColors } from "@/data/roles";
 
 function formatTime(ts: number) {
   const d = new Date(ts);
@@ -55,7 +55,7 @@ export default function InterviewsContent() {
               const session = sessions[roleId];
               if (!role || !session) return null;
 
-              const colors = departmentColors[role.department];
+              const colors = workflowColors[role.workflow];
               const isExpanded = expandedId === roleId;
               const userMessages = session.messages.filter((m) => m.role === "user").length;
               const chatMessages = session.messages.filter((m) => m.role !== "system");
@@ -70,7 +70,7 @@ export default function InterviewsContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
-                          {role.department}
+                          {role.workflow}
                         </span>
                         <span className="text-xs text-slate-400">
                           {userMessages} {userMessages === 1 ? "question" : "questions"} asked
@@ -167,9 +167,9 @@ export default function InterviewsContent() {
               <span className="font-semibold text-slate-900">{totalMessages}</span>
             </p>
             <p className="text-slate-600">
-              Departments covered:{" "}
+              Workflows covered:{" "}
               <span className="font-semibold text-slate-900">
-                {[...new Set(sortedIds.map((id) => getRoleById(id)?.department).filter(Boolean))].join(", ") || "None yet"}
+                {[...new Set(sortedIds.map((id) => getRoleById(id)?.workflow).filter(Boolean))].join(", ") || "None yet"}
               </span>
             </p>
           </div>

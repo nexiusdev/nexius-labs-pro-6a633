@@ -10,15 +10,15 @@ interface HeroSearchProps {
 
 export default function HeroSearch({ onSearch }: HeroSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [department, setDepartment] = useState("All");
+  const [workflow, setWorkflow] = useState("All");
 
   const handleQueryChange = (value: string) => {
     setSearchQuery(value);
-    onSearch(value, department);
+    onSearch(value, workflow);
   };
 
-  const handleDeptChange = (value: string) => {
-    setDepartment(value);
+  const handleWorkflowChange = (value: string) => {
+    setWorkflow(value);
     onSearch(searchQuery, value);
   };
 
@@ -58,20 +58,19 @@ export default function HeroSearch({ onSearch }: HeroSearchProps) {
                   className="flex-1 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none text-base min-w-0"
                 />
                 <select
-                  value={department}
-                  aria-label="Filter by department"
-                  onChange={(e) => handleDeptChange(e.target.value)}
+                  value={workflow}
+                  aria-label="Filter by workflow"
+                  onChange={(e) => handleWorkflowChange(e.target.value)}
                   className="bg-slate-50 border-l border-slate-200 px-4 py-3 text-slate-600 text-sm outline-none cursor-pointer"
                 >
-                  <option value="All">All Departments</option>
+                  <option value="All">All Workflows</option>
                   <option value="Finance">Finance</option>
                   <option value="CRM">CRM</option>
                   <option value="ERP">ERP</option>
                   <option value="HRMS">HRMS</option>
-                  <option value="Operations">Operations</option>
                 </select>
                 <button
-                  onClick={() => onSearch(searchQuery, department)}
+                  onClick={() => onSearch(searchQuery, workflow)}
                   className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Search size={18} />

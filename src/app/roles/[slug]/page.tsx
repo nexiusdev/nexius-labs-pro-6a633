@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Mic, MessageCircle, FileText } from "lucide-react";
-import { roles, getRoleById, getRelatedRoles, departmentColors } from "@/data/roles";
+import { roles, getRoleById, getRelatedRoles, workflowColors } from "@/data/roles";
 import Navigation from "@/components/Navigation";
 import RoleCard from "@/components/RoleCard";
 import ShortlistButton from "@/components/ShortlistButton";
@@ -35,7 +35,7 @@ export default async function RoleDetailPage({
   const role = getRoleById(slug);
   if (!role) notFound();
 
-  const colors = departmentColors[role.department];
+  const colors = workflowColors[role.workflow];
   const related = getRelatedRoles(role);
 
   return (
@@ -57,7 +57,7 @@ export default async function RoleDetailPage({
           <span
             className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${colors.text} ${colors.light}`}
           >
-            {role.department}
+            {role.workflow}
           </span>
           <h1 className="text-3xl md:text-4xl font-bold text-white mt-3">
             {role.title}
@@ -228,7 +228,7 @@ export default async function RoleDetailPage({
           {related.length > 0 && (
             <div className="mt-20 border-t border-slate-100 pt-12">
               <h2 className="text-2xl font-bold text-slate-900">
-                Related Roles in {role.department}
+                Related Roles in {role.workflow}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {related.map((r) => (

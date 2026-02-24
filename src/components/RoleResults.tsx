@@ -3,12 +3,12 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import {
-  departments,
-  departmentColors,
-  departmentBanners,
+  workflows,
+  workflowColors,
+  workflowBanners,
   filterRoles,
   type Role,
-  type Department,
+  type Workflow,
 } from "@/data/roles";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
@@ -31,19 +31,19 @@ export default function RoleResults({
     [searchQuery, department]
   );
 
-  const groupedByDepartment = useMemo(() => {
-    const grouped: Partial<Record<Department, Role[]>> = {};
+  const groupedByWorkflow = useMemo(() => {
+    const grouped: Partial<Record<Workflow, Role[]>> = {};
     for (const role of filteredRoles) {
-      if (!grouped[role.department]) {
-        grouped[role.department] = [];
+      if (!grouped[role.workflow]) {
+        grouped[role.workflow] = [];
       }
-      grouped[role.department]!.push(role);
+      grouped[role.workflow]!.push(role);
     }
     return grouped;
   }, [filteredRoles]);
 
-  const activeDepartments = departments.filter(
-    (dept) => groupedByDepartment[dept] && groupedByDepartment[dept]!.length > 0
+  const activeWorkflows = workflows.filter(
+    (wf) => groupedByWorkflow[wf] && groupedByWorkflow[wf]!.length > 0
   );
 
   return (
@@ -60,30 +60,30 @@ export default function RoleResults({
                 No roles found matching your search
               </h3>
               <p className="text-slate-500 mt-2 max-w-md">
-                Try adjusting your search terms or browse all departments to
+                Try adjusting your search terms or browse all workflows to
                 find the AI role you need.
               </p>
             </div>
           </AnimateOnScroll>
         ) : (
-          /* ── Department Groups ── */
+          /* ── Workflow Groups ── */
           <div className="space-y-12">
-            {activeDepartments.map((dept) => {
-              const deptRoles = groupedByDepartment[dept]!;
-              const colors = departmentColors[dept];
-              const bannerSrc = departmentBanners[dept];
+            {activeWorkflows.map((wf) => {
+              const wfRoles = groupedByWorkflow[wf]!;
+              const colors = workflowColors[wf];
+              const bannerSrc = workflowBanners[wf];
 
-              const featured = deptRoles.slice(0, MAX_PER_DEPT);
-              const hasMore = deptRoles.length > MAX_PER_DEPT;
+              const featured = wfRoles.slice(0, MAX_PER_DEPT);
+              const hasMore = wfRoles.length > MAX_PER_DEPT;
 
               return (
-                <div key={dept}>
+                <div key={wf}>
                   {/* ── Category Banner ── */}
                   <AnimateOnScroll animation="fade-up">
                     <div className="relative overflow-hidden rounded-2xl h-48 md:h-56">
                       <Image
                         src={bannerSrc}
-                        alt={`${dept} department banner`}
+                        alt={`${wf} workflow banner`}
                         fill
                         style={{ objectFit: "cover" }}
                         sizes="(max-width: 1280px) 100vw, 1280px"
@@ -98,15 +98,15 @@ export default function RoleResults({
                             style={{ backgroundColor: colors.accent }}
                           />
                           <span className="text-sm font-medium text-white/80 uppercase tracking-wider">
-                            Department
+                            Workflow
                           </span>
                         </div>
                         <h2 className="text-3xl font-bold text-white">
-                          {dept}
+                          {wf}
                         </h2>
                         <p className="text-white/70 mt-1 text-base">
-                          {deptRoles.length}{" "}
-                          {deptRoles.length === 1 ? "role" : "roles"}
+                          {wfRoles.length}{" "}
+                          {wfRoles.length === 1 ? "role" : "roles"}
                         </p>
                       </div>
                     </div>
@@ -129,10 +129,10 @@ export default function RoleResults({
                   {hasMore && (
                     <div className="text-center mt-6">
                       <Link
-                        href={`/roles?department=${encodeURIComponent(dept)}`}
+                        href={`/roles?workflow=${encodeURIComponent(wf)}`}
                         className={`inline-flex items-center gap-2 text-sm font-medium ${colors.text} hover:underline`}
                       >
-                        View all {deptRoles.length} {dept} roles
+                        View all {wfRoles.length} {wf} roles
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>

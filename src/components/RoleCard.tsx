@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { Eye, Star, Mic } from "lucide-react";
-import { departmentColors, type Role } from "@/data/roles";
+import { workflowColors, type Role } from "@/data/roles";
 import { getExpertByRoleId } from "@/data/experts";
 import { useShortlist } from "@/context/ShortlistContext";
 
 export default function RoleCard({ role }: { role: Role }) {
-  const colors = departmentColors[role.department];
+  const colors = workflowColors[role.workflow];
   const { toggle, has } = useShortlist();
   const isShortlisted = has(role.id);
   const expert = getExpertByRoleId(role.id);
@@ -25,9 +25,9 @@ export default function RoleCard({ role }: { role: Role }) {
             className="w-12 h-12 rounded-full object-cover border-2 border-slate-100 shrink-0"
           />
           <div className="min-w-0">
-            {/* Department badge */}
+            {/* Workflow badge */}
             <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
-              {role.department}
+              {role.workflow}
             </span>
             {/* Title */}
             <Link href={`/roles/${role.id}`} className="group">

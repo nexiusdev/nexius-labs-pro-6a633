@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import type { Role } from "@/data/roles";
-import { departmentColors } from "@/data/roles";
+import { workflowColors } from "@/data/roles";
 import { useInterviewHistory, type ChatMessage } from "@/context/InterviewHistoryContext";
 
 interface Message {
@@ -59,7 +59,7 @@ const quickPrompts = [
 ];
 
 export default function InterviewChat({ role }: { role: Role }) {
-  const colors = departmentColors[role.department];
+  const colors = workflowColors[role.workflow];
   const { getSession, initSession, saveMessage } = useInterviewHistory();
   const [input, setInput] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -165,7 +165,7 @@ export default function InterviewChat({ role }: { role: Role }) {
           Role hierarchy: Role → Functions → Skills
         </p>
 
-        {/* Department tags */}
+        {/* Workflow tags */}
         <div className="flex flex-wrap gap-2">
           {role.tags.slice(0, 3).map((tag) => (
             <span

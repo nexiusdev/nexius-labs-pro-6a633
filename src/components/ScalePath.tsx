@@ -25,7 +25,7 @@ const scaleSteps = [
     number: "04",
     title: "Scale the Team",
     description:
-      "Add roles across departments. Build a complete AI operations team that grows with your business.",
+      "Add roles across workflows. Build a complete AI operations team that grows with your business.",
   },
 ];
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { useShortlist } from "@/context/ShortlistContext";
-import { getRoleById, departmentColors } from "@/data/roles";
+import { getRoleById, workflowColors } from "@/data/roles";
 
 export default function ShortlistContent() {
   const { ids, remove } = useShortlist();
@@ -14,7 +14,7 @@ export default function ShortlistContent() {
     (sum, r) => sum + (r?.functions.reduce((s, f) => s + f.skills.length, 0) ?? 0),
     0
   );
-  const departments = [...new Set(shortlistedRoles.map((r) => r?.department))];
+  const coveredWorkflows = [...new Set(shortlistedRoles.map((r) => r?.workflow))];
   const approvalPct = shortlistedRoles.length
     ? Math.round(
         (shortlistedRoles.filter((r) => r?.governance === "Approval Required").length /
@@ -51,7 +51,7 @@ export default function ShortlistContent() {
           <div className="space-y-4 mt-8">
             {shortlistedRoles.map((role) => {
               if (!role) return null;
-              const colors = departmentColors[role.department];
+              const colors = workflowColors[role.workflow];
               return (
                 <div
                   key={role.id}
@@ -60,7 +60,7 @@ export default function ShortlistContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
-                        {role.department}
+                        {role.workflow}
                       </span>
                       <span className="text-xs text-slate-400">{role.governance}</span>
                     </div>
@@ -101,9 +101,9 @@ export default function ShortlistContent() {
               Total roles: <span className="font-semibold text-slate-900">{n}</span>
             </p>
             <p className="text-slate-600">
-              Coverage:{" "}
+              Workflows:{" "}
               <span className="font-semibold text-slate-900">
-                {departments.length > 0 ? departments.join(", ") : "None yet"}
+                {coveredWorkflows.length > 0 ? coveredWorkflows.join(", ") : "None yet"}
               </span>
             </p>
             <p className="text-slate-600">

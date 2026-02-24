@@ -11,7 +11,7 @@ const steps = [
     number: "01",
     title: "Choose a Role",
     description:
-      "Browse our catalog of pre-built digital colleague roles across Finance, CRM, ERP, HR, and Operations.",
+      "Browse our catalog of pre-built digital colleague roles across Finance, CRM, ERP, and HRMS workflows.",
   },
   {
     icon: Settings,
@@ -38,7 +38,7 @@ const steps = [
     number: "04",
     title: "Scale Your Team",
     description:
-      "Add more roles, expand functions, and build a complete AI-powered operations team as your business grows.",
+      "Add more roles, expand functions, and build a complete AI-powered team as your business grows.",
   },
 ];
 

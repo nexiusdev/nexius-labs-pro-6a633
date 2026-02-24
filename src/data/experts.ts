@@ -198,15 +198,15 @@ export const experts: Expert[] = [
   {
     id: "olivia-nakamura",
     name: "Olivia Nakamura",
-    title: "Operations Excellence Lead",
+    title: "ERP & Supply Chain Lead",
     location: "Tokyo, Japan",
     image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
-    headline: "Driving operational excellence through AI automation. Toyota Production System meets intelligent digital workers.",
+    headline: "Driving supply chain and quality excellence through AI automation. Toyota Production System meets intelligent digital workers.",
     about: "I design AI digital colleagues that drive operational excellence in supply chain, quality assurance, and compliance. My background in Toyota Production System and lean manufacturing gives me a unique approach to automation — every digital colleague I build embodies continuous improvement principles. I've deployed solutions across 50+ manufacturing and logistics facilities.",
     expertise: ["Supply Chain Management", "Quality Assurance", "Lean Manufacturing", "Process Automation", "Compliance Management", "ISO Standards", "Continuous Improvement", "Kaizen"],
     experience: [
-      { role: "Operations Excellence Lead", company: "Nexius Labs", period: "2022 – Present", description: "Lead the Operations digital colleagues practice, automating supply chain, QA, and compliance workflows for industrial clients." },
-      { role: "Operations Innovation Manager", company: "Toyota Motor Corporation", period: "2016 – 2022", description: "Led digital transformation initiatives applying TPS principles to AI-powered automation across 12 manufacturing plants." },
+      { role: "ERP & Supply Chain Lead", company: "Nexius Labs", period: "2022 – Present", description: "Lead the ERP and supply chain digital colleagues practice, automating supply chain, QA, and compliance workflows for industrial clients." },
+      { role: "Supply Chain Innovation Manager", company: "Toyota Motor Corporation", period: "2016 – 2022", description: "Led digital transformation initiatives applying TPS principles to AI-powered automation across 12 manufacturing plants." },
       { role: "Supply Chain Consultant", company: "BCG Tokyo", period: "2013 – 2016", description: "Advised automotive and electronics manufacturers on supply chain optimization and quality management systems." },
     ],
     education: [

@@ -141,7 +141,7 @@ export default function ContactForm() {
             <option value="CRM & Sales">CRM &amp; Sales</option>
             <option value="Finance & Accounting">Finance &amp; Accounting</option>
             <option value="HR & Payroll">HR &amp; Payroll</option>
-            <option value="Operations">Operations</option>
+            <option value="Supply Chain & Logistics">Supply Chain &amp; Logistics</option>
             <option value="Custom Solution">Custom Solution</option>
           </select>
         </div>

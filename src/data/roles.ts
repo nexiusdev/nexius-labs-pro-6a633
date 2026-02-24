@@ -23,7 +23,7 @@ export interface Role {
   detailedDescription: string;
   tags: string[];
   kpi: string;
-  department: Department;
+  workflow: Workflow;
   functionCount: number;
   functions: RoleFunction[];
   outcomes: RoleOutcome[];
@@ -35,22 +35,20 @@ export interface Role {
   image: string;
 }
 
-export type Department = "CRM" | "ERP" | "Finance" | "HRMS" | "Operations";
+export type Workflow = "CRM" | "ERP" | "Finance" | "HRMS";
 
-export const departmentColors: Record<Department, { bg: string; text: string; accent: string; light: string; border: string }> = {
+export const workflowColors: Record<Workflow, { bg: string; text: string; accent: string; light: string; border: string }> = {
   Finance: { bg: "bg-amber-600", text: "text-amber-700", accent: "#d97706", light: "bg-amber-50", border: "border-amber-500" },
   CRM: { bg: "bg-blue-600", text: "text-blue-700", accent: "#2563eb", light: "bg-blue-50", border: "border-blue-500" },
   ERP: { bg: "bg-emerald-600", text: "text-emerald-700", accent: "#059669", light: "bg-emerald-50", border: "border-emerald-500" },
   HRMS: { bg: "bg-purple-600", text: "text-purple-700", accent: "#9333ea", light: "bg-purple-50", border: "border-purple-500" },
-  Operations: { bg: "bg-rose-600", text: "text-rose-700", accent: "#e11d48", light: "bg-rose-50", border: "border-rose-500" },
 };
 
-export const departmentBanners: Record<Department, string> = {
+export const workflowBanners: Record<Workflow, string> = {
   CRM: "/images/banner-crm.jpg",
   ERP: "/images/banner-erp.jpg",
   Finance: "/images/banner-finance.jpg",
   HRMS: "/images/banner-hrms.jpg",
-  Operations: "/images/banner-erp.jpg",
 };
 
 export const roles: Role[] = [
@@ -63,7 +61,7 @@ export const roles: Role[] = [
     detailedDescription: "Handles the full accounts payable lifecycle from invoice receipt through payment execution. Automates three-way matching, manages approval workflows, and ensures timely vendor payments while maintaining accurate records for month-end close.",
     tags: ["Purchase-to-Pay", "Month-End Close", "Vendor Management"],
     kpi: "Invoice Processing Time",
-    department: "Finance",
+    workflow: "Finance",
     functionCount: 3,
     functions: [
       { name: "Invoice Processing", automationPercent: 92, skills: ["Three-way matching", "OCR extraction", "Approval routing"] },
@@ -89,7 +87,7 @@ export const roles: Role[] = [
     detailedDescription: "Oversees the entire order-to-cash cycle including invoice generation, payment tracking, collections management, and cash application. Reduces Days Sales Outstanding through automated follow-ups and intelligent escalation workflows.",
     tags: ["Order-to-Cash", "Collections", "Revenue Recognition"],
     kpi: "DSO Reduction",
-    department: "Finance",
+    workflow: "Finance",
     functionCount: 3,
     functions: [
       { name: "Collections Management", automationPercent: 90, skills: ["Aging analysis", "Automated reminders", "Escalation rules"] },
@@ -115,7 +113,7 @@ export const roles: Role[] = [
     detailedDescription: "Automates the preparation of financial statements, management reports, and regulatory filings. Ensures accuracy through automated reconciliation and validation checks while maintaining compliance with accounting standards.",
     tags: ["Month-End Reporting", "Quarterly Close", "Regulatory Filing"],
     kpi: "Report Accuracy > 99%",
-    department: "Finance",
+    workflow: "Finance",
     functionCount: 3,
     functions: [
       { name: "Financial Reporting", automationPercent: 91, skills: ["P&L generation", "Balance sheet prep", "Variance analysis"] },
@@ -141,7 +139,7 @@ export const roles: Role[] = [
     detailedDescription: "Manages the full expense lifecycle from submission through reimbursement. Enforces spending policies, automates approvals, monitors budgets in real-time, and prepares audit-ready documentation.",
     tags: ["Expense-to-Reimburse", "Budget Monitoring", "Audit Preparation"],
     kpi: "Expense Processing Time",
-    department: "Finance",
+    workflow: "Finance",
     functionCount: 3,
     functions: [
       { name: "Expense Processing", automationPercent: 93, skills: ["Receipt OCR", "Policy validation", "Auto-categorization"] },
@@ -168,7 +166,7 @@ export const roles: Role[] = [
     detailedDescription: "Streamlines the entire sales pipeline from lead capture to deal closure. Manages CRM data hygiene, sales forecasting, and pipeline analytics to maximize conversion rates and revenue predictability.",
     tags: ["Lead-to-Opportunity", "Quote-to-Close", "Sales Forecasting"],
     kpi: "Pipeline Velocity",
-    department: "CRM",
+    workflow: "CRM",
     functionCount: 3,
     functions: [
       { name: "Pipeline Management", automationPercent: 90, skills: ["Lead scoring", "Stage progression", "Deal tracking"] },
@@ -194,7 +192,7 @@ export const roles: Role[] = [
     detailedDescription: "Proactively monitors customer health scores, identifies churn risks, and orchestrates retention workflows. Manages the full customer lifecycle from onboarding through renewal, ensuring high satisfaction and net revenue retention.",
     tags: ["Customer Onboarding", "Renewal Pipeline", "Churn Prevention"],
     kpi: "Net Revenue Retention",
-    department: "CRM",
+    workflow: "CRM",
     functionCount: 3,
     functions: [
       { name: "Health Monitoring", automationPercent: 91, skills: ["Usage analytics", "Sentiment tracking", "Risk scoring"] },
@@ -220,7 +218,7 @@ export const roles: Role[] = [
     detailedDescription: "Automates the lead qualification process from initial capture through sales handoff. Uses multi-factor scoring to prioritize leads, nurtures prospects through automated sequences, and routes qualified leads to the right sales representatives.",
     tags: ["Lead Capture", "MQL-to-SQL", "Lead Nurturing"],
     kpi: "Lead Response Time < 5 min",
-    department: "CRM",
+    workflow: "CRM",
     functionCount: 3,
     functions: [
       { name: "Lead Scoring", automationPercent: 94, skills: ["Behavioral scoring", "Firmographic analysis", "Intent signals"] },
@@ -246,7 +244,7 @@ export const roles: Role[] = [
     detailedDescription: "Ensures the integrity, accuracy, and completeness of CRM data across all objects. Automates deduplication, enrichment from third-party sources, and ongoing hygiene workflows to maintain a trusted data foundation for sales and marketing.",
     tags: ["Data Quality", "Master Data Management", "CRM Hygiene"],
     kpi: "Data Accuracy Rate",
-    department: "CRM",
+    workflow: "CRM",
     functionCount: 3,
     functions: [
       { name: "Data Quality", automationPercent: 93, skills: ["Duplicate detection", "Standardization", "Completeness checks"] },
@@ -273,7 +271,7 @@ export const roles: Role[] = [
     detailedDescription: "Manages the full procure-to-pay cycle from requisition through payment. Automates vendor selection, purchase order generation, and contract lifecycle management to optimize spending and ensure compliance.",
     tags: ["Procure-to-Pay", "Vendor Onboarding", "Contract Lifecycle"],
     kpi: "Procurement Cycle Time",
-    department: "ERP",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Purchase Management", automationPercent: 89, skills: ["Requisition processing", "PO generation", "Approval workflows"] },
@@ -299,7 +297,7 @@ export const roles: Role[] = [
     detailedDescription: "Monitors inventory levels in real-time, automates reorder processes, and optimizes warehouse operations. Uses demand forecasting to prevent stockouts while minimizing carrying costs across all locations.",
     tags: ["Inventory Replenishment", "Warehouse Operations", "Demand Planning"],
     kpi: "Stockout Rate < 2%",
-    department: "ERP",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Inventory Optimization", automationPercent: 91, skills: ["Safety stock calc", "ABC analysis", "Reorder automation"] },
@@ -325,7 +323,7 @@ export const roles: Role[] = [
     detailedDescription: "Oversees the complete order lifecycle from initial capture through fulfillment and delivery. Handles returns processing, backorder management, and ensures accurate order tracking for customer satisfaction.",
     tags: ["Order-to-Fulfillment", "Returns Processing", "Backorder Management"],
     kpi: "Order Cycle Time",
-    department: "ERP",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Order Processing", automationPercent: 93, skills: ["Order validation", "Fulfillment routing", "Status tracking"] },
@@ -351,7 +349,7 @@ export const roles: Role[] = [
     detailedDescription: "Optimizes production scheduling, material requirements planning, and capacity management. Ensures efficient resource utilization while meeting delivery commitments through automated planning and scheduling workflows.",
     tags: ["Plan-to-Produce", "Material Planning", "Capacity Management"],
     kpi: "Production Schedule Adherence",
-    department: "ERP",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Production Scheduling", automationPercent: 87, skills: ["Schedule optimization", "Resource allocation", "Constraint handling"] },
@@ -378,7 +376,7 @@ export const roles: Role[] = [
     detailedDescription: "Manages the complete payroll cycle including salary computation, tax withholding, benefits deductions, and statutory compliance. Ensures accurate and timely payroll processing while maintaining full audit trails.",
     tags: ["Monthly Payroll", "Tax Filing", "Benefits Enrollment"],
     kpi: "Payroll Accuracy > 99.5%",
-    department: "HRMS",
+    workflow: "HRMS",
     functionCount: 3,
     functions: [
       { name: "Payroll Processing", automationPercent: 94, skills: ["Salary computation", "Deduction management", "Payslip generation"] },
@@ -404,7 +402,7 @@ export const roles: Role[] = [
     detailedDescription: "Automates the full recruitment lifecycle from job posting through candidate onboarding. Manages applicant tracking, interview scheduling, and talent pipeline nurturing to reduce time-to-hire while improving candidate quality.",
     tags: ["Hire-to-Onboard", "Talent Pipeline", "Campus Recruitment"],
     kpi: "Time-to-Hire",
-    department: "HRMS",
+    workflow: "HRMS",
     functionCount: 3,
     functions: [
       { name: "Applicant Screening", automationPercent: 91, skills: ["Resume parsing", "Criteria matching", "Ranking algorithms"] },
@@ -430,7 +428,7 @@ export const roles: Role[] = [
     detailedDescription: "Orchestrates the complete new hire onboarding experience from offer acceptance through first-90-day milestones. Coordinates equipment provisioning, system access, compliance training, and team introductions.",
     tags: ["Offer-to-Onboard", "Training Program", "Compliance Checklist"],
     kpi: "Onboarding Completion Rate",
-    department: "HRMS",
+    workflow: "HRMS",
     functionCount: 3,
     functions: [
       { name: "Onboarding Orchestration", automationPercent: 92, skills: ["Task sequencing", "Document collection", "Checklist tracking"] },
@@ -456,7 +454,7 @@ export const roles: Role[] = [
     detailedDescription: "Manages employee time tracking, leave requests, and attendance compliance. Automates policy enforcement, overtime calculations, and absence tracking to ensure accurate payroll inputs and workforce availability.",
     tags: ["Time-to-Pay", "Leave Processing", "Attendance Compliance"],
     kpi: "Leave Processing Time < 1hr",
-    department: "HRMS",
+    workflow: "HRMS",
     functionCount: 3,
     functions: [
       { name: "Leave Processing", automationPercent: 93, skills: ["Request handling", "Balance calculation", "Approval routing"] },
@@ -474,7 +472,6 @@ export const roles: Role[] = [
     outcomeCategory: "Speed",
     systems: ["HRMS"],
   },
-  // Operations
   {
     id: "supply-chain-coordinator",
     title: "Supply Chain Coordinator",
@@ -483,7 +480,7 @@ export const roles: Role[] = [
     detailedDescription: "Coordinates end-to-end supply chain operations from planning through delivery. Manages supplier relationships, optimizes logistics routes, and ensures timely delivery while minimizing transportation costs.",
     tags: ["Plan-to-Deliver", "Supplier Management", "Logistics Optimization"],
     kpi: "On-Time Delivery Rate",
-    department: "Operations",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Supply Planning", automationPercent: 88, skills: ["Demand aggregation", "Supply scheduling", "Risk monitoring"] },
@@ -509,7 +506,7 @@ export const roles: Role[] = [
     detailedDescription: "Monitors quality metrics across operations and automates inspection workflows. Manages audit schedules, tracks non-conformances, and drives continuous improvement initiatives through data-driven insights.",
     tags: ["Quality Control", "Audit Management", "Continuous Improvement"],
     kpi: "Defect Rate Reduction",
-    department: "Operations",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Quality Inspection", automationPercent: 89, skills: ["Checklist automation", "Defect logging", "Trend analysis"] },
@@ -535,7 +532,7 @@ export const roles: Role[] = [
     detailedDescription: "Automates high-volume data processing, validation, and entry across systems. Handles document digitization, data migration, and ongoing record maintenance with enterprise-grade accuracy.",
     tags: ["Document-to-Data", "Data Migration", "Record Maintenance"],
     kpi: "Processing Accuracy > 99%",
-    department: "Operations",
+    workflow: "ERP",
     functionCount: 3,
     functions: [
       { name: "Data Processing", automationPercent: 95, skills: ["OCR extraction", "Format standardization", "Batch processing"] },
@@ -561,7 +558,7 @@ export const roles: Role[] = [
     detailedDescription: "Monitors regulatory compliance across the organization, maintains audit readiness, and automates risk assessments. Ensures adherence to industry standards and internal policies through continuous monitoring and documentation.",
     tags: ["Compliance Monitoring", "Audit Preparation", "Risk Assessment"],
     kpi: "Compliance Score",
-    department: "Operations",
+    workflow: "Finance",
     functionCount: 3,
     functions: [
       { name: "Compliance Monitoring", automationPercent: 90, skills: ["Policy tracking", "Violation detection", "Regulatory updates"] },
@@ -581,7 +578,7 @@ export const roles: Role[] = [
   },
 ];
 
-export const departments: Department[] = ["Finance", "CRM", "ERP", "HRMS", "Operations"];
+export const workflows: Workflow[] = ["Finance", "CRM", "ERP", "HRMS"];
 export const governanceOptions: Governance[] = ["Auto", "Approval Required", "Exception-only"];
 export const complexityOptions: Complexity[] = ["Starter", "Intermediate", "Advanced"];
 export const timeToValueOptions: TimeToValue[] = ["<2 weeks", "2-4 weeks", "1-2 months"];
@@ -590,7 +587,7 @@ export const systemOptions: System[] = ["ATS", "CRM", "ERP", "Finance", "HRMS", 
 
 export interface FilterState {
   query: string;
-  department: string;
+  workflow: string;
   outcomeCategory: string;
   governance: string;
   complexity: string;
@@ -599,19 +596,19 @@ export interface FilterState {
   sort: string;
 }
 
-export function filterRoles(query: string, department: string): Role[] {
+export function filterRoles(query: string, workflow: string): Role[] {
   return roles.filter((role) => {
-    const matchesDept = department === "All" || role.department === department;
-    if (!query) return matchesDept;
+    const matchesWorkflow = workflow === "All" || role.workflow === workflow;
+    if (!query) return matchesWorkflow;
     const q = query.toLowerCase();
     const matchesQuery =
       role.title.toLowerCase().includes(q) ||
       role.description.toLowerCase().includes(q) ||
       role.tags.some((t) => t.toLowerCase().includes(q)) ||
-      role.department.toLowerCase().includes(q) ||
+      role.workflow.toLowerCase().includes(q) ||
       role.functions.some((f) => f.name.toLowerCase().includes(q)) ||
       role.functions.some((f) => f.skills.some((s) => s.toLowerCase().includes(q)));
-    return matchesDept && matchesQuery;
+    return matchesWorkflow && matchesQuery;
   });
 }
 
@@ -619,7 +616,7 @@ const timeToValueOrder: Record<TimeToValue, number> = { "<2 weeks": 1, "2-4 week
 
 export function advancedFilterRoles(filters: FilterState): Role[] {
   let result = roles.filter((role) => {
-    if (filters.department !== "All" && role.department !== filters.department) return false;
+    if (filters.workflow !== "All" && role.workflow !== filters.workflow) return false;
     if (filters.outcomeCategory !== "All" && role.outcomeCategory !== filters.outcomeCategory) return false;
     if (filters.governance !== "All" && role.governance !== filters.governance) return false;
     if (filters.complexity !== "All" && role.complexity !== filters.complexity) return false;
@@ -632,7 +629,7 @@ export function advancedFilterRoles(filters: FilterState): Role[] {
         role.title.toLowerCase().includes(q) ||
         role.description.toLowerCase().includes(q) ||
         role.tags.some((t) => t.toLowerCase().includes(q)) ||
-        role.department.toLowerCase().includes(q) ||
+        role.workflow.toLowerCase().includes(q) ||
         role.functions.some((f) => f.name.toLowerCase().includes(q)) ||
         role.functions.some((f) => f.skills.some((s) => s.toLowerCase().includes(q)));
       if (!matchesQuery) return false;
@@ -655,5 +652,5 @@ export function getRoleById(id: string): Role | undefined {
 }
 
 export function getRelatedRoles(role: Role): Role[] {
-  return roles.filter((r) => r.department === role.department && r.id !== role.id).slice(0, 3);
+  return roles.filter((r) => r.workflow === role.workflow && r.id !== role.id).slice(0, 3);
 }

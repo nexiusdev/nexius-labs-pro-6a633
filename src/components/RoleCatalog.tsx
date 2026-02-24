@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import {
-  departments,
+  workflows,
   governanceOptions,
   complexityOptions,
   timeToValueOptions,
@@ -16,7 +16,7 @@ import RoleCard from "@/components/RoleCard";
 
 const defaultFilters: FilterState = {
   query: "",
-  department: "All",
+  workflow: "All",
   outcomeCategory: "All",
   governance: "All",
   complexity: "All",
@@ -42,25 +42,25 @@ export default function RoleCatalog() {
     }));
   };
 
-  const allDepts = ["All", ...departments];
+  const allWorkflows = ["All", ...workflows];
 
   return (
     <div className="mt-8">
-      {/* Quick Family Filter */}
+      {/* Quick Workflow Filter */}
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-5">
-        <p className="text-sm font-medium text-slate-500 mb-3">Quick Family Filter</p>
+        <p className="text-sm font-medium text-slate-500 mb-3">Quick Workflow Filter</p>
         <div className="flex flex-wrap gap-2">
-          {allDepts.map((dept) => (
+          {allWorkflows.map((wf) => (
             <button
-              key={dept}
-              onClick={() => update({ department: dept })}
+              key={wf}
+              onClick={() => update({ workflow: wf })}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filters.department === dept
+                filters.workflow === wf
                   ? "bg-slate-900 text-white"
                   : "bg-white text-slate-600 border border-slate-200 hover:border-slate-400"
               }`}
             >
-              {dept}
+              {wf}
             </button>
           ))}
         </div>
@@ -78,15 +78,15 @@ export default function RoleCatalog() {
             className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
           />
 
-          {/* Families dropdown */}
+          {/* Workflows dropdown */}
           <select
-            value={filters.department}
-            onChange={(e) => update({ department: e.target.value })}
+            value={filters.workflow}
+            onChange={(e) => update({ workflow: e.target.value })}
             className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 outline-none focus:border-blue-500 text-sm cursor-pointer"
           >
-            <option value="All">All Families</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
+            <option value="All">All Workflows</option>
+            {workflows.map((w) => (
+              <option key={w} value={w}>{w}</option>
             ))}
           </select>
 

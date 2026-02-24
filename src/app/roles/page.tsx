@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Role Catalog — Nexius Labs",
   description:
-    "Browse 20+ pre-built AI digital colleague roles across Finance, CRM, ERP, HRMS, and Operations. Each role comes with defined functions, workflows, and measurable KPIs.",
+    "Browse 20+ pre-built AI digital colleague roles across Finance, CRM, ERP, and HRMS workflows. Each role comes with defined functions, skills, and measurable KPIs.",
 };
 
 export default function RolesPage() {

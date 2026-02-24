@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { roles, getRoleById, departmentColors } from "@/data/roles";
+import { roles, getRoleById, workflowColors } from "@/data/roles";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import InterviewChat from "@/components/InterviewChat";
@@ -34,7 +34,7 @@ export default async function InterviewPage({
   const role = getRoleById(slug);
   if (!role) notFound();
 
-  const colors = departmentColors[role.department];
+  const colors = workflowColors[role.workflow];
 
   return (
     <>
@@ -57,7 +57,7 @@ export default async function InterviewPage({
           <span
             className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${colors.text} ${colors.light}`}
           >
-            {role.department}
+            {role.workflow}
           </span>
           <h1 className="text-3xl md:text-4xl font-bold text-white mt-3">
             Interview: {role.title}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Briefcase, GraduationCap, Award, ArrowRight, ChevronRight } from "lucide-react";
 import { experts, getExpertById } from "@/data/experts";
-import { getRoleById, departmentColors } from "@/data/roles";
+import { getRoleById, workflowColors } from "@/data/roles";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -163,7 +163,7 @@ export default async function ExpertProfilePage({
                 <div className="mt-3 space-y-3">
                   {createdRoles.map((role) => {
                     if (!role) return null;
-                    const colors = departmentColors[role.department];
+                    const colors = workflowColors[role.workflow];
                     return (
                       <Link
                         key={role.id}
@@ -172,7 +172,7 @@ export default async function ExpertProfilePage({
                       >
                         <div className="min-w-0">
                           <span className={`text-[10px] font-bold uppercase tracking-wider ${colors.text}`}>
-                            {role.department}
+                            {role.workflow}
                           </span>
                           <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                             {role.title}

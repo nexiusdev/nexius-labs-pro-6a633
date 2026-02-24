@@ -11,18 +11,18 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [department, setDepartment] = useState("All");
+  const [workflow, setWorkflow] = useState("All");
 
-  const handleSearch = (query: string, dept: string) => {
+  const handleSearch = (query: string, wf: string) => {
     setSearchQuery(query);
-    setDepartment(dept);
+    setWorkflow(wf);
   };
 
   return (
     <>
       <Navigation />
       <HeroSearch onSearch={handleSearch} />
-      <RoleResults searchQuery={searchQuery} department={department} />
+      <RoleResults searchQuery={searchQuery} department={workflow} />
       <ProfileShowcase />
       <SocialProof />
       <CTA />
