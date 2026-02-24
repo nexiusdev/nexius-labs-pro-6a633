@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { useShortlist } from "@/context/ShortlistContext";
-import { getRoleById, workflowColors } from "@/data/roles";
+import { getRoleById, workflowColors, roles, type Role, type System } from "@/data/roles";
+import RoleCard from "@/components/RoleCard";
 
 export default function ShortlistContent() {
   const { ids, remove } = useShortlist();
@@ -30,7 +31,31 @@ export default function ShortlistContent() {
   const cycleCompression = Math.min(n * 12, 70);
   const cashUplift = Math.min(n * 8, 45);
 
+  // Recommended roles: same workflow or shared systems, not already shortlisted
+  const shortlistedIds = new Set(ids);
+  const shortlistedWorkflows = new Set(shortlistedRoles.map((r) => r?.workflow));
+  const shortlistedSystems = new Set(
+    shortlistedRoles.flatMap((r) => r?.systems ?? [])
+  );
+
+  const recommended = n > 0
+    ? roles
+        .filter((r) => !shortlistedIds.has(r.id))
+        .map((r) => {
+          let score = 0;
+          if (shortlistedWorkflows.has(r.workflow)) score += 3;
+          const sharedSystems = r.systems.filter((s) => shortlistedSystems.has(s as System));
+          score += sharedSystems.length;
+          return { role: r, score };
+        })
+        .filter((r) => r.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6)
+        .map((r) => r.role)
+    : [];
+
   return (
+    <>
     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
       {/* ── Left column (2/3) ── */}
       <div className="lg:col-span-2">
@@ -163,5 +188,28 @@ export default function ShortlistContent() {
         </div>
       </div>
     </div>
+
+    {/* ── Recommended Roles ── */}
+    {recommended.length > 0 && (
+      <section className="mt-16">
+        <div className="text-center mb-8">
+          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+            Expand Your Team
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mt-2">
+            Recommended Roles
+          </h2>
+          <p className="text-slate-500 mt-3 max-w-xl mx-auto text-base leading-relaxed">
+            Based on your shortlisted workflows and systems, these roles complement your deployment and maximize operational coverage.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recommended.map((role) => (
+            <RoleCard key={role.id} role={role} />
+          ))}
+        </div>
+      </section>
+    )}
+    </>
   );
 }
