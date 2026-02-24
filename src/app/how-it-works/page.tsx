@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
+import DeploymentSteps from "@/components/DeploymentSteps";
+import ScalePath from "@/components/ScalePath";
+import TrustSafety from "@/components/TrustSafety";
 import Integrations from "@/components/Integrations";
 import StatsCounter from "@/components/StatsCounter";
+import FAQ from "@/components/FAQ";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
@@ -27,13 +31,18 @@ export default function HowItWorksPage() {
             How It Works
           </h1>
           <p className="text-lg text-slate-300 text-center mt-4 max-w-2xl mx-auto leading-relaxed">
-            Discover the Roles, Functions, and Skills architecture behind our digital colleagues.
+            Discover the Roles, Functions, and Skills architecture behind our
+            digital colleagues.
           </p>
         </div>
       </section>
       <HowItWorks />
+      <DeploymentSteps />
+      <ScalePath />
+      <TrustSafety />
       <Integrations />
       <StatsCounter />
+      <FAQ />
       <CTA />
       <Footer />
     </>
