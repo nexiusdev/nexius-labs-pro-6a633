@@ -97,21 +97,6 @@ export default function InterviewChat({ role }: { role: Role }) {
     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
       {/* ── Left column: Chat (2/3) ── */}
       <div className="lg:col-span-2">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-            Interview: {role.title}
-          </h1>
-          <span className="text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full">
-            Provider: local
-          </span>
-        </div>
-
-        <p className="text-slate-500 mt-3">
-          Run an interview with this digital role before shortlist or quote
-          decisions.
-        </p>
-
         {/* Chat area */}
         <div className="mt-6 bg-blue-50/60 border border-blue-100 rounded-xl p-5 min-h-[380px] max-h-[480px] overflow-y-auto flex flex-col gap-4">
           {messages.map((msg, i) => (

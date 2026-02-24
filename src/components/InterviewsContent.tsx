@@ -35,13 +35,6 @@ export default function InterviewsContent() {
     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
       {/* Left column (2/3) */}
       <div className="lg:col-span-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-          Interview History
-        </h1>
-        <p className="text-slate-500 mt-2">
-          Track your interview sessions with digital colleagues. Review past conversations and continue where you left off.
-        </p>
-
         {sortedIds.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-8 mt-8">
             <p className="text-slate-500 text-lg">No interviews yet.</p>

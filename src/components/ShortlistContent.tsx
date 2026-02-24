@@ -34,13 +34,6 @@ export default function ShortlistContent() {
     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
       {/* ── Left column (2/3) ── */}
       <div className="lg:col-span-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-          Your Digital Colleague Cart
-        </h1>
-        <p className="text-slate-500 mt-2">
-          Build your first deployment batch. Start lean, then expand functions and workflow bundles.
-        </p>
-
         {shortlistedRoles.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-8 mt-8">
             <p className="text-slate-500 text-lg">No roles in your cart yet.</p>

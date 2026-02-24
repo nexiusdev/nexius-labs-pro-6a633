@@ -42,41 +42,43 @@ export default async function ExpertProfilePage({
     <>
       <Navigation />
 
-      <main className="pt-20 pb-16 bg-white">
-        <div className="container-wide">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-slate-400 mb-8">
-            <Link href="/roles" className="hover:text-slate-700 transition-colors font-medium">
+      {/* Profile hero */}
+      <section className="gradient-hero relative overflow-hidden pt-28 pb-10">
+        <div className="hero-circle hero-circle-1" />
+        <div className="hero-circle hero-circle-2" />
+        <div className="container-wide relative z-10">
+          <nav className="flex items-center gap-2 text-sm text-slate-400 mb-6">
+            <Link href="/roles" className="hover:text-white transition-colors font-medium">
               Roles
             </Link>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-slate-600">{expert.name}</span>
+            <span className="text-slate-300">{expert.name}</span>
           </nav>
-
-          {/* Profile header */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-8 md:p-10 text-white">
-            <div className="flex flex-col md:flex-row items-start gap-6">
-              <img
-                src={expert.image}
-                alt={expert.name}
-                className="w-28 h-28 rounded-full object-cover border-4 border-white/20 shadow-lg shrink-0"
-              />
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold">{expert.name}</h1>
-                <p className="text-lg text-blue-300 font-medium mt-1">{expert.title}</p>
-                <div className="flex items-center gap-2 text-slate-300 mt-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{expert.location}</span>
-                </div>
-                <p className="text-slate-300 mt-4 leading-relaxed max-w-2xl">
-                  {expert.headline}
-                </p>
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            <img
+              src={expert.image}
+              alt={expert.name}
+              className="w-28 h-28 rounded-full object-cover border-4 border-white/20 shadow-lg shrink-0"
+            />
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">{expert.name}</h1>
+              <p className="text-lg text-blue-300 font-medium mt-1">{expert.title}</p>
+              <div className="flex items-center gap-2 text-slate-300 mt-2">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm">{expert.location}</span>
               </div>
+              <p className="text-slate-300 mt-4 leading-relaxed max-w-2xl">
+                {expert.headline}
+              </p>
             </div>
           </div>
+        </div>
+      </section>
 
+      <main className="pb-16 bg-white">
+        <div className="container-wide pt-10">
           {/* Two-column layout */}
-          <div className="lg:grid lg:grid-cols-3 lg:gap-12 mt-10">
+          <div className="lg:grid lg:grid-cols-3 lg:gap-12">
             {/* Left column (2/3) */}
             <div className="lg:col-span-2 space-y-10">
               {/* About */}

@@ -16,15 +16,17 @@ export default function RolesPage() {
       <Navigation />
 
       {/* Hero */}
-      <section className="pt-28 md:pt-36 pb-12 bg-white">
-        <div className="container-wide">
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600 text-center">
+      <section className="gradient-hero relative overflow-hidden pt-28 md:pt-36 pb-12">
+        <div className="hero-circle hero-circle-1" />
+        <div className="hero-circle hero-circle-2" />
+        <div className="container-wide relative z-10">
+          <p className="text-sm font-semibold uppercase tracking-wider text-blue-400 text-center">
             Role Catalog
           </p>
-          <h1 className="text-3xl md:text-[clamp(28px,4vw,40px)] font-bold text-slate-900 text-center mt-2 text-balance">
+          <h1 className="text-3xl md:text-[clamp(28px,4vw,40px)] font-bold text-white text-center mt-2 text-balance">
             Find Your Digital Colleague
           </h1>
-          <p className="text-lg text-slate-500 text-center mt-4 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-slate-300 text-center mt-4 max-w-2xl mx-auto leading-relaxed">
             Browse by function, systems, and governance model. Start with one role and scale by workflow.
           </p>
         </div>

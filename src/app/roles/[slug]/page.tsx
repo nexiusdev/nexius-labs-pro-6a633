@@ -42,33 +42,38 @@ export default async function RoleDetailPage({
     <>
       <Navigation />
 
-      <main className="pt-20 pb-16 bg-white">
-        <div className="container-wide">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-slate-400 mb-8">
-            <Link href="/roles" className="hover:text-slate-700 transition-colors font-medium">
+      {/* Dark hero header */}
+      <section className="gradient-hero relative overflow-hidden pt-28 pb-10">
+        <div className="hero-circle hero-circle-1" />
+        <div className="hero-circle hero-circle-2" />
+        <div className="container-wide relative z-10">
+          <nav className="flex items-center gap-2 text-sm text-slate-400 mb-6">
+            <Link href="/roles" className="hover:text-white transition-colors font-medium">
               Roles
             </Link>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-slate-600">{role.title}</span>
+            <span className="text-slate-300">{role.title}</span>
           </nav>
+          <span
+            className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${colors.text} ${colors.light}`}
+          >
+            {role.department}
+          </span>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mt-3">
+            {role.title}
+          </h1>
+          <p className="text-lg text-slate-300 mt-4 leading-relaxed max-w-2xl">
+            {role.detailedDescription}
+          </p>
+        </div>
+      </section>
 
+      <main className="pb-16 bg-white">
+        <div className="container-wide pt-10">
           {/* Two-column layout */}
           <div className="lg:grid lg:grid-cols-3 lg:gap-12">
             {/* ── Left column (2/3) ── */}
             <div className="lg:col-span-2">
-              {/* Header */}
-              <span
-                className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${colors.text} ${colors.light}`}
-              >
-                {role.department}
-              </span>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3">
-                {role.title}
-              </h1>
-              <p className="text-lg text-slate-500 mt-4 leading-relaxed max-w-2xl">
-                {role.detailedDescription}
-              </p>
 
               {/* Functions & Skills */}
               <h2 className="text-2xl font-bold text-slate-900 mt-12">
