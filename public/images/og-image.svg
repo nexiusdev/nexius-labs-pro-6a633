@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1a2540"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <!-- Decorative orb gradients -->
+    <radialGradient id="orb1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.15"/>
+      <stop offset="70%" stop-color="#60a5fa" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="orb2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.12"/>
+      <stop offset="70%" stop-color="#818cf8" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="orb3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.1"/>
+      <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Subtle grid pattern -->
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#334155" stroke-width="0.5" stroke-opacity="0.15"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid overlay -->
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Decorative orbs -->
+  <ellipse cx="200" cy="150" rx="300" ry="280" fill="url(#orb1)"/>
+  <ellipse cx="1000" cy="480" rx="350" ry="300" fill="url(#orb2)"/>
+  <ellipse cx="600" cy="100" rx="250" ry="200" fill="url(#orb3)"/>
+
+  <!-- Small decorative circles -->
+  <circle cx="150" cy="520" r="4" fill="#60a5fa" opacity="0.3"/>
+  <circle cx="300" cy="80" r="3" fill="#818cf8" opacity="0.25"/>
+  <circle cx="900" cy="120" r="5" fill="#60a5fa" opacity="0.2"/>
+  <circle cx="1050" cy="550" r="3.5" fill="#38bdf8" opacity="0.3"/>
+  <circle cx="750" cy="570" r="3" fill="#818cf8" opacity="0.2"/>
+  <circle cx="450" cy="560" r="4" fill="#60a5fa" opacity="0.15"/>
+  <circle cx="1100" cy="200" r="3" fill="#60a5fa" opacity="0.25"/>
+  <circle cx="100" cy="350" r="2.5" fill="#38bdf8" opacity="0.2"/>
+
+  <!-- Subtle ring decorations -->
+  <circle cx="950" cy="180" r="60" fill="none" stroke="#60a5fa" stroke-width="1" stroke-opacity="0.08"/>
+  <circle cx="950" cy="180" r="90" fill="none" stroke="#60a5fa" stroke-width="0.5" stroke-opacity="0.05"/>
+  <circle cx="250" cy="450" r="50" fill="none" stroke="#818cf8" stroke-width="1" stroke-opacity="0.08"/>
+  <circle cx="250" cy="450" r="80" fill="none" stroke="#818cf8" stroke-width="0.5" stroke-opacity="0.05"/>
+
+  <!-- Horizontal accent line -->
+  <line x1="400" y1="330" x2="800" y2="330" stroke="#60a5fa" stroke-width="1" stroke-opacity="0.15"/>
+
+  <!-- Logo text: "nexius" in white + "labs" in blue -->
+  <text x="600" y="270" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="80" letter-spacing="-2">
+    <tspan fill="#ffffff">nexius</tspan><tspan fill="#60a5fa">labs</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="370" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="500" font-size="32" fill="#94a3b8" letter-spacing="1">
+    Digital Colleagues as a Service
+  </text>
+
+  <!-- Sub-tagline -->
+  <text x="600" y="420" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="400" font-size="22" fill="#64748b" letter-spacing="0.5">
+    Enterprise-grade AI execution for SMEs
+  </text>
+
+  <!-- Bottom border accent -->
+  <rect x="0" y="624" width="1200" height="6" fill="#60a5fa" opacity="0.6"/>
+</svg>
