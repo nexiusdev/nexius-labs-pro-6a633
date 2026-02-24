@@ -32,6 +32,7 @@ export interface Role {
   timeToValue: TimeToValue;
   outcomeCategory: OutcomeCategory;
   systems: System[];
+  image: string;
 }
 
 export type Department = "CRM" | "ERP" | "Finance" | "HRMS" | "Operations";
@@ -57,6 +58,7 @@ export const roles: Role[] = [
   {
     id: "accounts-payable-specialist",
     title: "Accounts Payable Specialist",
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates invoice processing, payments, and reconciliation.",
     detailedDescription: "Handles the full accounts payable lifecycle from invoice receipt through payment execution. Automates three-way matching, manages approval workflows, and ensures timely vendor payments while maintaining accurate records for month-end close.",
     tags: ["Purchase-to-Pay", "Month-End Close", "Vendor Management"],
@@ -82,6 +84,7 @@ export const roles: Role[] = [
   {
     id: "accounts-receivable-manager",
     title: "Accounts Receivable Manager",
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Manages invoicing, collections, and cash application.",
     detailedDescription: "Oversees the entire order-to-cash cycle including invoice generation, payment tracking, collections management, and cash application. Reduces Days Sales Outstanding through automated follow-ups and intelligent escalation workflows.",
     tags: ["Order-to-Cash", "Collections", "Revenue Recognition"],
@@ -107,6 +110,7 @@ export const roles: Role[] = [
   {
     id: "financial-reporting-analyst",
     title: "Financial Reporting Analyst",
+    image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates financial reporting and compliance.",
     detailedDescription: "Automates the preparation of financial statements, management reports, and regulatory filings. Ensures accuracy through automated reconciliation and validation checks while maintaining compliance with accounting standards.",
     tags: ["Month-End Reporting", "Quarterly Close", "Regulatory Filing"],
@@ -132,6 +136,7 @@ export const roles: Role[] = [
   {
     id: "expense-management-coordinator",
     title: "Expense Management Coordinator",
+    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates expense processing and compliance.",
     detailedDescription: "Manages the full expense lifecycle from submission through reimbursement. Enforces spending policies, automates approvals, monitors budgets in real-time, and prepares audit-ready documentation.",
     tags: ["Expense-to-Reimburse", "Budget Monitoring", "Audit Preparation"],
@@ -158,6 +163,7 @@ export const roles: Role[] = [
   {
     id: "sales-operations-coordinator",
     title: "Sales Operations Coordinator",
+    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Streamlines sales pipeline and CRM operations.",
     detailedDescription: "Streamlines the entire sales pipeline from lead capture to deal closure. Manages CRM data hygiene, sales forecasting, and pipeline analytics to maximize conversion rates and revenue predictability.",
     tags: ["Lead-to-Opportunity", "Quote-to-Close", "Sales Forecasting"],
@@ -183,6 +189,7 @@ export const roles: Role[] = [
   {
     id: "customer-success-associate",
     title: "Customer Success Associate",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Monitors customer health and drives retention.",
     detailedDescription: "Proactively monitors customer health scores, identifies churn risks, and orchestrates retention workflows. Manages the full customer lifecycle from onboarding through renewal, ensuring high satisfaction and net revenue retention.",
     tags: ["Customer Onboarding", "Renewal Pipeline", "Churn Prevention"],
@@ -208,6 +215,7 @@ export const roles: Role[] = [
   {
     id: "lead-qualification-specialist",
     title: "Lead Qualification Specialist",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Scores, qualifies, and routes inbound leads.",
     detailedDescription: "Automates the lead qualification process from initial capture through sales handoff. Uses multi-factor scoring to prioritize leads, nurtures prospects through automated sequences, and routes qualified leads to the right sales representatives.",
     tags: ["Lead Capture", "MQL-to-SQL", "Lead Nurturing"],
@@ -233,6 +241,7 @@ export const roles: Role[] = [
   {
     id: "crm-data-steward",
     title: "CRM Data Steward",
+    image: "https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Maintains CRM data quality and enrichment.",
     detailedDescription: "Ensures the integrity, accuracy, and completeness of CRM data across all objects. Automates deduplication, enrichment from third-party sources, and ongoing hygiene workflows to maintain a trusted data foundation for sales and marketing.",
     tags: ["Data Quality", "Master Data Management", "CRM Hygiene"],
@@ -259,6 +268,7 @@ export const roles: Role[] = [
   {
     id: "procurement-analyst",
     title: "Procurement Analyst",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates procurement and vendor management.",
     detailedDescription: "Manages the full procure-to-pay cycle from requisition through payment. Automates vendor selection, purchase order generation, and contract lifecycle management to optimize spending and ensure compliance.",
     tags: ["Procure-to-Pay", "Vendor Onboarding", "Contract Lifecycle"],
@@ -284,6 +294,7 @@ export const roles: Role[] = [
   {
     id: "inventory-controller",
     title: "Inventory Controller",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Optimizes inventory levels and warehouse operations.",
     detailedDescription: "Monitors inventory levels in real-time, automates reorder processes, and optimizes warehouse operations. Uses demand forecasting to prevent stockouts while minimizing carrying costs across all locations.",
     tags: ["Inventory Replenishment", "Warehouse Operations", "Demand Planning"],
@@ -309,6 +320,7 @@ export const roles: Role[] = [
   {
     id: "order-management-specialist",
     title: "Order Management Specialist",
+    image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Manages order lifecycle from capture to fulfillment.",
     detailedDescription: "Oversees the complete order lifecycle from initial capture through fulfillment and delivery. Handles returns processing, backorder management, and ensures accurate order tracking for customer satisfaction.",
     tags: ["Order-to-Fulfillment", "Returns Processing", "Backorder Management"],
@@ -334,6 +346,7 @@ export const roles: Role[] = [
   {
     id: "production-planning-analyst",
     title: "Production Planning Analyst",
+    image: "https://images.unsplash.com/photo-1556157382-97eded2f9b0a?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Optimizes production scheduling and MRP.",
     detailedDescription: "Optimizes production scheduling, material requirements planning, and capacity management. Ensures efficient resource utilization while meeting delivery commitments through automated planning and scheduling workflows.",
     tags: ["Plan-to-Produce", "Material Planning", "Capacity Management"],
@@ -360,6 +373,7 @@ export const roles: Role[] = [
   {
     id: "payroll-administrator",
     title: "Payroll Administrator",
+    image: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Processes payroll, tax, and benefits administration.",
     detailedDescription: "Manages the complete payroll cycle including salary computation, tax withholding, benefits deductions, and statutory compliance. Ensures accurate and timely payroll processing while maintaining full audit trails.",
     tags: ["Monthly Payroll", "Tax Filing", "Benefits Enrollment"],
@@ -385,6 +399,7 @@ export const roles: Role[] = [
   {
     id: "recruitment-coordinator",
     title: "Recruitment Coordinator",
+    image: "https://images.unsplash.com/photo-1559526324-593bc073d938?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates recruitment lifecycle and candidate management.",
     detailedDescription: "Automates the full recruitment lifecycle from job posting through candidate onboarding. Manages applicant tracking, interview scheduling, and talent pipeline nurturing to reduce time-to-hire while improving candidate quality.",
     tags: ["Hire-to-Onboard", "Talent Pipeline", "Campus Recruitment"],
@@ -410,6 +425,7 @@ export const roles: Role[] = [
   {
     id: "employee-onboarding-specialist",
     title: "Employee Onboarding Specialist",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Orchestrates new hire onboarding end-to-end.",
     detailedDescription: "Orchestrates the complete new hire onboarding experience from offer acceptance through first-90-day milestones. Coordinates equipment provisioning, system access, compliance training, and team introductions.",
     tags: ["Offer-to-Onboard", "Training Program", "Compliance Checklist"],
@@ -435,6 +451,7 @@ export const roles: Role[] = [
   {
     id: "leave-attendance-manager",
     title: "Leave & Attendance Manager",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Manages time tracking, leave, and attendance.",
     detailedDescription: "Manages employee time tracking, leave requests, and attendance compliance. Automates policy enforcement, overtime calculations, and absence tracking to ensure accurate payroll inputs and workforce availability.",
     tags: ["Time-to-Pay", "Leave Processing", "Attendance Compliance"],
@@ -461,6 +478,7 @@ export const roles: Role[] = [
   {
     id: "supply-chain-coordinator",
     title: "Supply Chain Coordinator",
+    image: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Coordinates supply chain and logistics operations.",
     detailedDescription: "Coordinates end-to-end supply chain operations from planning through delivery. Manages supplier relationships, optimizes logistics routes, and ensures timely delivery while minimizing transportation costs.",
     tags: ["Plan-to-Deliver", "Supplier Management", "Logistics Optimization"],
@@ -486,6 +504,7 @@ export const roles: Role[] = [
   {
     id: "quality-assurance-monitor",
     title: "Quality Assurance Monitor",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Monitors quality and automates inspection workflows.",
     detailedDescription: "Monitors quality metrics across operations and automates inspection workflows. Manages audit schedules, tracks non-conformances, and drives continuous improvement initiatives through data-driven insights.",
     tags: ["Quality Control", "Audit Management", "Continuous Improvement"],
@@ -511,6 +530,7 @@ export const roles: Role[] = [
   {
     id: "data-entry-processor",
     title: "Data Entry Processor",
+    image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Automates high-volume data processing and validation.",
     detailedDescription: "Automates high-volume data processing, validation, and entry across systems. Handles document digitization, data migration, and ongoing record maintenance with enterprise-grade accuracy.",
     tags: ["Document-to-Data", "Data Migration", "Record Maintenance"],
@@ -536,6 +556,7 @@ export const roles: Role[] = [
   {
     id: "compliance-officer",
     title: "Compliance Officer",
+    image: "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=400&h=400&fit=crop&crop=faces&auto=format&q=80",
     description: "Monitors compliance and maintains audit readiness.",
     detailedDescription: "Monitors regulatory compliance across the organization, maintains audit readiness, and automates risk assessments. Ensures adherence to industry standards and internal policies through continuous monitoring and documentation.",
     tags: ["Compliance Monitoring", "Audit Preparation", "Risk Assessment"],

@@ -15,17 +15,26 @@ export default function RoleCard({ role }: { role: Role }) {
       className={`bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden card-hover border-l-4 ${colors.border} h-full flex flex-col`}
     >
       <div className="p-6 flex flex-col flex-1">
-        {/* Department badge */}
-        <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
-          {role.department}
-        </span>
-
-        {/* Title */}
-        <Link href={`/roles/${role.id}`} className="group">
-          <h3 className="text-lg font-semibold text-slate-900 mt-2 leading-snug group-hover:text-blue-600 transition-colors">
-            {role.title}
-          </h3>
-        </Link>
+        {/* Avatar + header row */}
+        <div className="flex items-start gap-3">
+          <img
+            src={role.image}
+            alt={role.title}
+            className="w-12 h-12 rounded-full object-cover border-2 border-slate-100 shrink-0"
+          />
+          <div className="min-w-0">
+            {/* Department badge */}
+            <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
+              {role.department}
+            </span>
+            {/* Title */}
+            <Link href={`/roles/${role.id}`} className="group">
+              <h3 className="text-lg font-semibold text-slate-900 mt-0.5 leading-snug group-hover:text-blue-600 transition-colors">
+                {role.title}
+              </h3>
+            </Link>
+          </div>
+        </div>
 
         {/* Description */}
         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
