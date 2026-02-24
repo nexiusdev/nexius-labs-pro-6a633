@@ -152,7 +152,7 @@ export default function InterviewChat({ role }: { role: Role }) {
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
-                className="w-full text-left border-2 border-slate-200 hover:border-slate-800 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                className="w-full text-left border-2 border-slate-200 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
               >
                 {prompt}
               </button>
@@ -180,7 +180,7 @@ export default function InterviewChat({ role }: { role: Role }) {
         {/* Back link */}
         <Link
           href={`/roles/${role.id}`}
-          className="w-full inline-flex items-center justify-center border-2 border-slate-200 hover:border-slate-800 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+          className="w-full inline-flex items-center justify-center border-2 border-slate-200 hover:border-slate-400 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
         >
           Back to Role Detail
         </Link>

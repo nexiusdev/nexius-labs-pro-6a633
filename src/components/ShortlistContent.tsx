@@ -149,13 +149,13 @@ export default function ShortlistContent() {
           <div className="mt-4 space-y-3">
             <Link
               href="/#contact"
-              className="w-full inline-flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white px-5 py-3 rounded-lg font-semibold transition-all text-sm uppercase tracking-wide shadow-md"
+              className="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
             >
               Book Free Consultation
             </Link>
             <Link
               href="/#contact"
-              className="w-full inline-flex items-center justify-center border-2 border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-900 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+              className="w-full inline-flex items-center justify-center border-2 border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
             >
               Request Quote
             </Link>

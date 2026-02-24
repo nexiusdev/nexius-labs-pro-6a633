@@ -150,7 +150,7 @@ export default async function RoleDetailPage({
                 <div className="space-y-3">
                   <Link
                     href={`/interview/${role.id}`}
-                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-700 text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
                   >
                     <Mic className="w-4 h-4" />
                     Interview This Role
@@ -158,14 +158,14 @@ export default async function RoleDetailPage({
                   <ShortlistButton roleId={role.id} />
                   <Link
                     href="/#contact"
-                    className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white px-5 py-3 rounded-lg font-semibold transition-all text-sm uppercase tracking-wide shadow-md"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
                   >
                     <MessageCircle className="w-4 h-4" />
                     Book Free Consultation
                   </Link>
                   <Link
                     href="/#contact"
-                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
                   >
                     <FileText className="w-4 h-4" />
                     Request Quote

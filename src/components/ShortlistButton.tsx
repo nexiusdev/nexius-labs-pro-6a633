@@ -13,7 +13,7 @@ export default function ShortlistButton({ roleId }: { roleId: string }) {
       className={`w-full inline-flex items-center justify-center gap-2 border-2 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide ${
         isShortlisted
           ? "border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100"
-          : "border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-800"
+          : "border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800"
       }`}
     >
       <Star className={`w-4 h-4 ${isShortlisted ? "fill-amber-500" : ""}`} />
