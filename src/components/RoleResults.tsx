@@ -143,25 +143,33 @@ export default function RoleResults({
           </div>
         )}
 
-        {/* ── Custom Roles CTA ── */}
+        {/* ── Build Your Team CTA ── */}
         {filteredRoles.length > 0 && (
           <AnimateOnScroll animation="fade-up">
-            <div className="mt-16 text-center bg-white rounded-2xl border border-slate-200 p-10 md:p-14">
-              <h3 className="text-2xl font-bold text-slate-900">
-                Don&apos;t see what you need?
+            <div className="mt-16 gradient-dark-band rounded-2xl p-10 md:p-14 text-center">
+              <h3 className="text-2xl md:text-3xl font-bold text-white">
+                Start Building Your AI-Powered Team
               </h3>
-              <p className="text-slate-500 mt-3 max-w-lg mx-auto text-base">
-                We build custom roles for your specific workflows. Tell us the
-                process you want to automate and we&apos;ll design an AI agent
-                around it.
+              <p className="text-slate-300 mt-3 max-w-xl mx-auto text-base leading-relaxed">
+                Join forward-thinking SMEs who are replacing manual operations
+                with intelligent automation. Start with one role. Scale to an
+                entire team.
               </p>
-              <a
-                href="#contact"
-                className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors"
-              >
-                Contact Us
-                <ArrowRight className="w-4 h-4" />
-              </a>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+                <Link
+                  href="/roles"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-full transition-colors"
+                >
+                  Browse Roles
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/#contact"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-slate-500 text-slate-300 hover:text-white hover:border-white text-sm font-medium rounded-full transition-colors"
+                >
+                  Talk to Sales
+                </Link>
+              </div>
             </div>
           </AnimateOnScroll>
         )}

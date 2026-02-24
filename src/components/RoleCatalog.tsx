@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   workflows,
   governanceOptions,
@@ -11,8 +11,38 @@ import {
   advancedFilterRoles,
   type FilterState,
 } from "@/data/roles";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
+
+const CARDS_PER_CTA = 9;
+
+function CustomRoleCTA() {
+  return (
+    <div className="col-span-full">
+      <AnimateOnScroll animation="fade-up">
+        <div className="text-center bg-white rounded-2xl border border-slate-200 p-10 md:p-14">
+          <h3 className="text-2xl font-bold text-slate-900">
+            Don&apos;t see what you need?
+          </h3>
+          <p className="text-slate-500 mt-3 max-w-lg mx-auto text-base">
+            We build custom roles for your specific workflows. Tell us the
+            process you want to automate and we&apos;ll design an AI agent
+            around it.
+          </p>
+          <Link
+            href="/#contact"
+            className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition-colors"
+          >
+            Contact Us
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </AnimateOnScroll>
+    </div>
+  );
+}
 
 const defaultFilters: FilterState = {
   query: "",
@@ -178,7 +208,7 @@ export default function RoleCatalog() {
         {filtered.length} {filtered.length === 1 ? "role" : "roles"} found
       </p>
 
-      {/* Role cards grid */}
+      {/* Role cards grid with interleaved CTA */}
       {filtered.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-xl font-semibold text-slate-900">No roles found</p>
@@ -187,10 +217,17 @@ export default function RoleCatalog() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {filtered.map((role, index) => (
-            <AnimateOnScroll key={role.id} animation="fade-up" delay={Math.min(index * 50, 300)}>
-              <RoleCard role={role} />
-            </AnimateOnScroll>
+            <React.Fragment key={role.id}>
+              <AnimateOnScroll animation="fade-up" delay={Math.min(index * 50, 300)}>
+                <RoleCard role={role} />
+              </AnimateOnScroll>
+              {(index + 1) % CARDS_PER_CTA === 0 && index + 1 < filtered.length && (
+                <CustomRoleCTA />
+              )}
+            </React.Fragment>
           ))}
+          {/* Always show CTA at the end */}
+          <CustomRoleCTA />
         </div>
       )}
     </div>
