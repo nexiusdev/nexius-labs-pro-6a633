@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
+import ExpertCrafted from "@/components/ExpertCrafted";
 import DeploymentSteps from "@/components/DeploymentSteps";
 import ScalePath from "@/components/ScalePath";
 import TrustSafety from "@/components/TrustSafety";
@@ -37,6 +38,7 @@ export default function HowItWorksPage() {
         </div>
       </section>
       <HowItWorks />
+      <ExpertCrafted />
       <DeploymentSteps />
       <ScalePath />
       <TrustSafety />
