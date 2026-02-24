@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, Mic, Star, MessageCircle, FileText } from "lucide-react";
 import { roles, getRoleById, getRelatedRoles, departmentColors } from "@/data/roles";
 import Navigation from "@/components/Navigation";
 import RoleCard from "@/components/RoleCard";
@@ -136,6 +136,42 @@ export default async function RoleDetailPage({
 
             {/* ── Right column (sidebar, 1/3) ── */}
             <div className="mt-12 lg:mt-0 space-y-6">
+              {/* Action buttons card */}
+              <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                <p className="text-sm text-slate-500 mb-4">
+                  Time-to-value: 2–4 weeks
+                </p>
+                <div className="space-y-3">
+                  <Link
+                    href="/#contact"
+                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                  >
+                    <Mic className="w-4 h-4" />
+                    Interview This Role
+                  </Link>
+                  <button
+                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                  >
+                    <Star className="w-4 h-4" />
+                    Add Shortlist
+                  </button>
+                  <Link
+                    href="/#contact"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white px-5 py-3 rounded-lg font-semibold transition-all text-sm uppercase tracking-wide shadow-md"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Book Free Consultation
+                  </Link>
+                  <Link
+                    href="/#contact"
+                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Request Quote
+                  </Link>
+                </div>
+              </div>
+
               {/* Hire CTA card */}
               <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
                 <h3 className="text-lg font-bold text-slate-900">
