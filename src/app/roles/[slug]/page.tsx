@@ -143,7 +143,7 @@ export default async function RoleDetailPage({
                 </p>
                 <div className="space-y-3">
                   <Link
-                    href="/#contact"
+                    href={`/interview/${role.id}`}
                     className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
                   >
                     <Mic className="w-4 h-4" />
