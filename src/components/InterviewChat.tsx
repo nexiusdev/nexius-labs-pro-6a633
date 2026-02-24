@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import type { Role } from "@/data/roles";
 import { departmentColors } from "@/data/roles";
+import { useInterviewHistory, type ChatMessage } from "@/context/InterviewHistoryContext";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -59,27 +60,36 @@ const quickPrompts = [
 
 export default function InterviewChat({ role }: { role: Role }) {
   const colors = departmentColors[role.department];
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "system",
-      text: `Interview started for ${role.title}. Ask me about functions, controls, deployment, and outcomes.`,
-    },
-  ]);
+  const { getSession, initSession, saveMessage } = useInterviewHistory();
   const [input, setInput] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const systemMsg = `Interview started for ${role.title}. Ask me about functions, controls, deployment, and outcomes.`;
+
+  // Initialize session on mount
+  useEffect(() => {
+    initSession(role.id, systemMsg);
+  }, [role.id, systemMsg, initSession]);
+
+  const session = getSession(role.id);
+  const messages: Message[] = session
+    ? session.messages.map((m) => ({ role: m.role, text: m.text }))
+    : [{ role: "system", text: systemMsg }];
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages.length]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
 
-    const userMsg: Message = { role: "user", text: text.trim() };
+    const now = Date.now();
+    const userMsg: ChatMessage = { role: "user", text: text.trim(), timestamp: now };
     const answer = getDummyAnswer(role, text);
-    const assistantMsg: Message = { role: "assistant", text: answer };
+    const assistantMsg: ChatMessage = { role: "assistant", text: answer, timestamp: now + 1 };
 
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    saveMessage(role.id, userMsg);
+    saveMessage(role.id, assistantMsg);
     setInput("");
   };
 

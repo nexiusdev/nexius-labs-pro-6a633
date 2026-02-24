@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Star } from "lucide-react";
+import { Menu, X, Star, Mic } from "lucide-react";
 import { useShortlist } from "@/context/ShortlistContext";
+import { useInterviewHistory } from "@/context/InterviewHistoryContext";
 
 const pages = [
   { href: "/", label: "Home" },
@@ -18,6 +19,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { count } = useShortlist();
+  const { count: interviewCount } = useInterviewHistory();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -63,6 +65,15 @@ export default function Navigation() {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           <Link
+            href="/interviews"
+            className={`border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
+              pathname === "/interviews" ? "border-blue-400 text-white" : ""
+            }`}
+          >
+            <Mic className="w-3.5 h-3.5" />
+            Interviews {interviewCount}
+          </Link>
+          <Link
             href="/shortlist"
             className={`border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
               pathname === "/shortlist" ? "border-blue-400 text-white" : ""
@@ -102,6 +113,13 @@ export default function Navigation() {
                 {label}
               </Link>
             ))}
+            <Link
+              href="/interviews"
+              className="text-lg font-medium text-slate-200 hover:text-white transition-colors inline-flex items-center gap-2"
+            >
+              <Mic className="w-4 h-4" />
+              Interviews ({interviewCount})
+            </Link>
             <Link
               href="/shortlist"
               className="text-lg font-medium text-slate-200 hover:text-white transition-colors inline-flex items-center gap-2"
