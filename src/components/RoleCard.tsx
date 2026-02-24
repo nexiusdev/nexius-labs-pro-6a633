@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { Eye, Star, Mic } from "lucide-react";
 import { departmentColors, type Role } from "@/data/roles";
+import { getExpertByRoleId } from "@/data/experts";
 import { useShortlist } from "@/context/ShortlistContext";
 
 export default function RoleCard({ role }: { role: Role }) {
   const colors = departmentColors[role.department];
   const { toggle, has } = useShortlist();
   const isShortlisted = has(role.id);
+  const expert = getExpertByRoleId(role.id);
 
   return (
     <div
@@ -53,11 +55,25 @@ export default function RoleCard({ role }: { role: Role }) {
           ))}
         </div>
 
-        {/* Function count */}
-        <div className="mt-auto pt-5">
+        {/* Function count + Created by */}
+        <div className="mt-auto pt-5 flex items-center justify-between">
           <span className="text-xs text-slate-400 font-medium">
             {role.functionCount} functions
           </span>
+          {expert && (
+            <Link
+              href={`/experts/${expert.id}`}
+              className="text-xs text-slate-400 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5"
+            >
+              Created by
+              <img
+                src={expert.image}
+                alt={expert.name}
+                className="w-4 h-4 rounded-full object-cover"
+              />
+              <span className="font-medium text-slate-600 hover:text-blue-600">{expert.name}</span>
+            </Link>
+          )}
         </div>
 
         {/* Action buttons */}
