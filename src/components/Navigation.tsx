@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
-const sections = [
-  { id: "roles", label: "Digital Roles" },
-  { id: "how-it-works", label: "How It Works" },
-  { id: "outcomes", label: "Why Nexius" },
+const pages = [
+  { href: "/", label: "Home" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/why-nexius", label: "Why Nexius" },
 ];
 
 export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -20,25 +22,10 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile menu on route change
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-40% 0px -40% 0px", threshold: 0 }
-    );
-
-    sections.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
     <nav
@@ -48,42 +35,42 @@ export default function Navigation() {
     >
       <div className="container-wide flex items-center justify-between h-16">
         {/* Logo */}
-        <a href="#" aria-label="Nexius Labs home" className="text-xl font-bold tracking-tight">
+        <Link href="/" aria-label="Nexius Labs home" className="text-xl font-bold tracking-tight">
           <span className="text-white">nexius</span>
           <span className="text-blue-400">labs</span>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {sections.map(({ id, label }) => (
-            <a
-              key={id}
-              href={`#${id}`}
+          {pages.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
               className={`nav-link text-sm font-medium ${
-                activeSection === id
+                pathname === href
                   ? "active text-white"
                   : "text-slate-300 hover:text-white"
               }`}
             >
               {label}
-            </a>
+            </Link>
           ))}
         </div>
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          <a
-            href="#contact"
+          <Link
+            href="/#contact"
             className="border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             Request Quote
-          </a>
-          <a
-            href="#contact"
+          </Link>
+          <Link
+            href="/#contact"
             className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             Free Consultation
-          </a>
+          </Link>
         </div>
 
         {/* Mobile hamburger */}
@@ -100,31 +87,28 @@ export default function Navigation() {
       {mobileOpen && (
         <div className="md:hidden bg-slate-900/98 backdrop-blur-md absolute inset-x-0 top-16 bottom-0 min-h-[calc(100vh-4rem)]">
           <div className="container-wide py-8 flex flex-col gap-6">
-            {sections.map(({ id, label }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                onClick={() => setMobileOpen(false)}
+            {pages.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
                 className="text-lg font-medium text-slate-200 hover:text-white transition-colors"
               >
                 {label}
-              </a>
+              </Link>
             ))}
             <div className="flex flex-col gap-3 mt-4">
-              <a
-                href="#contact"
-                onClick={() => setMobileOpen(false)}
+              <Link
+                href="/#contact"
                 className="border border-slate-600 text-slate-300 hover:text-white text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
               >
                 Request Quote
-              </a>
-              <a
-                href="#contact"
-                onClick={() => setMobileOpen(false)}
+              </Link>
+              <Link
+                href="/#contact"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
               >
                 Free Consultation
-              </a>
+              </Link>
             </div>
           </div>
         </div>

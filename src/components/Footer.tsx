@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white">
@@ -6,10 +8,10 @@ export default function Footer() {
         <div className="lg:grid lg:grid-cols-4 gap-8">
           {/* Brand column */}
           <div>
-            <div className="text-xl font-bold">
+            <Link href="/" className="text-xl font-bold">
               <span className="text-white">nexius</span>
               <span className="text-blue-400">labs</span>
-            </div>
+            </Link>
             <p className="text-sm text-slate-400 mt-3">
               Digital Colleagues as a Service
             </p>
@@ -22,18 +24,18 @@ export default function Footer() {
           <div className="mt-8 lg:mt-0">
             <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
             <nav className="space-y-0">
-              <a href="#roles" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              <Link href="/" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 Digital Roles
-              </a>
-              <a href="#how-it-works" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              </Link>
+              <Link href="/how-it-works" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 How It Works
-              </a>
-              <a href="#how-it-works" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              </Link>
+              <Link href="/how-it-works" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 Integrations
-              </a>
-              <a href="#outcomes" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
-                Outcomes
-              </a>
+              </Link>
+              <Link href="/why-nexius" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+                Why Nexius
+              </Link>
             </nav>
           </div>
 
@@ -41,12 +43,12 @@ export default function Footer() {
           <div className="mt-8 lg:mt-0">
             <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
             <nav className="space-y-0">
-              <a href="#" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              <Link href="/why-nexius" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 About Us
-              </a>
-              <a href="#contact" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              </Link>
+              <Link href="/#contact" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 Contact
-              </a>
+              </Link>
               <span className="block text-sm text-slate-500 cursor-default py-1">
                 Careers (Coming Soon)
               </span>
