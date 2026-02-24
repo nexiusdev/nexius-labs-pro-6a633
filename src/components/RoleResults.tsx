@@ -11,28 +11,13 @@ import {
   type Department,
 } from "@/data/roles";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
-import {
-  Briefcase,
-  Users,
-  BarChart3,
-  Building2,
-  Settings,
-  Activity,
-  ArrowRight,
-} from "lucide-react";
+import RoleCard from "@/components/RoleCard";
+import { Briefcase, ArrowRight } from "lucide-react";
 
 interface RoleResultsProps {
   searchQuery: string;
   department: string;
 }
-
-const departmentIcons: Record<Department, typeof Briefcase> = {
-  CRM: Users,
-  ERP: Building2,
-  Finance: BarChart3,
-  HRMS: Briefcase,
-  Operations: Settings,
-};
 
 export default function RoleResults({
   searchQuery,
@@ -122,85 +107,16 @@ export default function RoleResults({
                   </AnimateOnScroll>
 
                   {/* ── Role Cards Grid ── */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                    {deptRoles.map((role, index) => {
-                      const RoleIcon = departmentIcons[role.department];
-
-                      return (
-                        <AnimateOnScroll
-                          key={role.id}
-                          animation="fade-up"
-                          delay={index * 100}
-                        >
-                          <div className="role-card card-hover bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100">
-                            {/* Color bar */}
-                            <div className={`color-bar w-full ${colors.bg}`} />
-
-                            {/* Card body */}
-                            <div className="p-5">
-                              {/* Role icon */}
-                              <div
-                                className={`role-icon w-10 h-10 rounded-lg flex items-center justify-center ${colors.light}`}
-                              >
-                                <RoleIcon
-                                  className={`w-5 h-5 ${colors.text}`}
-                                />
-                              </div>
-
-                              {/* Title */}
-                              <h3 className="text-base font-semibold text-slate-900 mt-3">
-                                {role.title}
-                              </h3>
-
-                              {/* Description */}
-                              <p className="text-sm text-slate-500 mt-1 line-clamp-2">
-                                {role.description}
-                              </p>
-
-                              {/* Tags */}
-                              <div className="flex flex-wrap gap-1.5 mt-3">
-                                {role.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full"
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-
-                              {/* KPI badge */}
-                              <div className="mt-3 flex items-center gap-1.5">
-                                <Activity
-                                  className={`w-3.5 h-3.5 ${colors.text}`}
-                                />
-                                <span
-                                  className={`text-xs font-medium ${colors.text}`}
-                                >
-                                  {role.kpi}
-                                </span>
-                              </div>
-
-                              {/* Bottom row */}
-                              <div className="flex justify-between items-center mt-4">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                  <span className="text-xs text-emerald-600 font-medium">
-                                    Available Now
-                                  </span>
-                                </div>
-                                <a
-                                  href="#contact"
-                                  className={`text-xs font-medium ${colors.text} hover:underline`}
-                                >
-                                  Hire Role
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </AnimateOnScroll>
-                      );
-                    })}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                    {deptRoles.map((role, index) => (
+                      <AnimateOnScroll
+                        key={role.id}
+                        animation="fade-up"
+                        delay={index * 100}
+                      >
+                        <RoleCard role={role} />
+                      </AnimateOnScroll>
+                    ))}
                   </div>
                 </div>
               );
