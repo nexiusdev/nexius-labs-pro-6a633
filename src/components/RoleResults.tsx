@@ -12,7 +12,10 @@ import {
 } from "@/data/roles";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
+import Link from "next/link";
 import { Briefcase, ArrowRight } from "lucide-react";
+
+const MAX_PER_DEPT = 3;
 
 interface RoleResultsProps {
   searchQuery: string;
@@ -70,6 +73,9 @@ export default function RoleResults({
               const colors = departmentColors[dept];
               const bannerSrc = departmentBanners[dept];
 
+              const featured = deptRoles.slice(0, MAX_PER_DEPT);
+              const hasMore = deptRoles.length > MAX_PER_DEPT;
+
               return (
                 <div key={dept}>
                   {/* ── Category Banner ── */}
@@ -108,7 +114,7 @@ export default function RoleResults({
 
                   {/* ── Role Cards Grid ── */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                    {deptRoles.map((role, index) => (
+                    {featured.map((role, index) => (
                       <AnimateOnScroll
                         key={role.id}
                         animation="fade-up"
@@ -118,6 +124,19 @@ export default function RoleResults({
                       </AnimateOnScroll>
                     ))}
                   </div>
+
+                  {/* View all link */}
+                  {hasMore && (
+                    <div className="text-center mt-6">
+                      <Link
+                        href={`/roles?department=${encodeURIComponent(dept)}`}
+                        className={`inline-flex items-center gap-2 text-sm font-medium ${colors.text} hover:underline`}
+                      >
+                        View all {deptRoles.length} {dept} roles
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               );
             })}
