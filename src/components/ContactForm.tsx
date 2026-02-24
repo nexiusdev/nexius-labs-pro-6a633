@@ -53,7 +53,7 @@ export default function ContactForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
-            Name
+            Full Name
           </label>
           <input
             type="text"
@@ -65,6 +65,21 @@ export default function ContactForm() {
           />
         </div>
 
+        <div>
+          <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-1.5">
+            Company
+          </label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            placeholder="Your company name"
+            className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
             Email
@@ -78,37 +93,58 @@ export default function ContactForm() {
             className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
           />
         </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1.5">
+            Phone
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="+65 1234 5678"
+            className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
+          />
+        </div>
       </div>
 
-      <div className="mt-4">
-        <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-1.5">
-          Company
-        </label>
-        <input
-          type="text"
-          id="company"
-          name="company"
-          placeholder="Your company name"
-          className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <label htmlFor="company-size" className="block text-sm font-medium text-slate-700 mb-1.5">
+            Company Size
+          </label>
+          <select
+            id="company-size"
+            name="company-size"
+            className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors cursor-pointer"
+          >
+            <option value="">Select size</option>
+            <option value="1-10">1–10</option>
+            <option value="11-50">11–50</option>
+            <option value="51-200">51–200</option>
+            <option value="201-500">201–500</option>
+            <option value="500+">500+</option>
+          </select>
+        </div>
 
-      <div className="mt-4">
-        <label htmlFor="department" className="block text-sm font-medium text-slate-700 mb-1.5">
-          Department
-        </label>
-        <select
-          id="department"
-          name="department"
-          className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
-        >
-          <option value="General Inquiry">General Inquiry</option>
-          <option value="CRM">CRM</option>
-          <option value="ERP">ERP</option>
-          <option value="Finance">Finance</option>
-          <option value="HRMS">HRMS</option>
-          <option value="Custom Role">Custom Role</option>
-        </select>
+        <div>
+          <label htmlFor="interest" className="block text-sm font-medium text-slate-700 mb-1.5">
+            Area of Interest
+          </label>
+          <select
+            id="interest"
+            name="interest"
+            className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors cursor-pointer"
+          >
+            <option value="General Inquiry">General Inquiry</option>
+            <option value="ERP Automation">ERP Automation</option>
+            <option value="CRM & Sales">CRM &amp; Sales</option>
+            <option value="Finance & Accounting">Finance &amp; Accounting</option>
+            <option value="HR & Payroll">HR &amp; Payroll</option>
+            <option value="Operations">Operations</option>
+            <option value="Custom Solution">Custom Solution</option>
+          </select>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -120,14 +156,14 @@ export default function ContactForm() {
           name="message"
           required
           rows={4}
-          placeholder="Tell us about your needs..."
+          placeholder="Tell us about your operations challenges..."
           className="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
         />
       </div>
 
       <button
         type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-medium transition-colors mt-2"
+        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-medium transition-colors mt-4"
       >
         Send Message
       </button>

@@ -12,6 +12,7 @@ const pages = [
   { href: "/roles", label: "Roles" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/why-nexius", label: "Why Nexius" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navigation() {
