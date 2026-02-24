@@ -22,11 +22,10 @@ export default function RolesPage() {
             Role Catalog
           </p>
           <h1 className="text-3xl md:text-[clamp(28px,4vw,40px)] font-bold text-slate-900 text-center mt-2 text-balance">
-            Find Your Perfect Digital Colleague
+            Find Your Digital Colleague
           </h1>
           <p className="text-lg text-slate-500 text-center mt-4 max-w-2xl mx-auto leading-relaxed">
-            Browse 20+ pre-built roles across Finance, CRM, ERP, HR, and Operations.
-            Each role comes with defined functions, workflows, and measurable KPIs.
+            Browse by function, systems, and governance model. Start with one role and scale by workflow.
           </p>
         </div>
       </section>

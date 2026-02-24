@@ -10,6 +10,12 @@ export interface RoleOutcome {
   description: string;
 }
 
+export type Governance = "Auto" | "Approval Required" | "Exception-only";
+export type Complexity = "Starter" | "Intermediate" | "Advanced";
+export type TimeToValue = "<2 weeks" | "2-4 weeks" | "1-2 months";
+export type OutcomeCategory = "Speed" | "Reliability" | "Cashflow" | "Control";
+export type System = "ATS" | "CRM" | "ERP" | "Finance" | "HRMS" | "ITSM" | "MAP" | "WMS";
+
 export interface Role {
   id: string;
   title: string;
@@ -21,6 +27,11 @@ export interface Role {
   functionCount: number;
   functions: RoleFunction[];
   outcomes: RoleOutcome[];
+  governance: Governance;
+  complexity: Complexity;
+  timeToValue: TimeToValue;
+  outcomeCategory: OutcomeCategory;
+  systems: System[];
 }
 
 export type Department = "CRM" | "ERP" | "Finance" | "HRMS" | "Operations";
@@ -62,6 +73,11 @@ export const roles: Role[] = [
       { value: "3x faster", label: "Processing Speed", description: "Invoice processing acceleration" },
       { value: "99.5%", label: "Payment Accuracy", description: "Error-free payment execution" },
     ],
+    governance: "Approval Required",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Control",
+    systems: ["ERP", "Finance"],
   },
   {
     id: "accounts-receivable-manager",
@@ -82,6 +98,11 @@ export const roles: Role[] = [
       { value: "90%", label: "Auto-Match Rate", description: "Payment-to-invoice matching" },
       { value: "2x faster", label: "Collections Cycle", description: "Faster outstanding recovery" },
     ],
+    governance: "Approval Required",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Cashflow",
+    systems: ["ERP", "Finance", "CRM"],
   },
   {
     id: "financial-reporting-analyst",
@@ -102,6 +123,11 @@ export const roles: Role[] = [
       { value: "50% faster", label: "Close Cycle", description: "Month-end close acceleration" },
       { value: "100%", label: "Filing Compliance", description: "On-time regulatory submissions" },
     ],
+    governance: "Approval Required",
+    complexity: "Advanced",
+    timeToValue: "1-2 months",
+    outcomeCategory: "Reliability",
+    systems: ["ERP", "Finance"],
   },
   {
     id: "expense-management-coordinator",
@@ -122,6 +148,11 @@ export const roles: Role[] = [
       { value: "95%", label: "Policy Compliance", description: "Auto-enforced spending rules" },
       { value: "Zero", label: "Audit Findings", description: "Clean audit documentation" },
     ],
+    governance: "Exception-only",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Speed",
+    systems: ["ERP", "Finance"],
   },
   // CRM
   {
@@ -143,6 +174,11 @@ export const roles: Role[] = [
       { value: "35% faster", label: "Pipeline Velocity", description: "Deal cycle acceleration" },
       { value: "92%", label: "Forecast Accuracy", description: "Revenue prediction precision" },
     ],
+    governance: "Exception-only",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Speed",
+    systems: ["CRM"],
   },
   {
     id: "customer-success-associate",
@@ -163,6 +199,11 @@ export const roles: Role[] = [
       { value: "40%", label: "Churn Reduction", description: "At-risk customer recovery" },
       { value: "120%", label: "Net Revenue Retention", description: "Including expansion revenue" },
     ],
+    governance: "Auto",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Reliability",
+    systems: ["CRM"],
   },
   {
     id: "lead-qualification-specialist",
@@ -183,6 +224,11 @@ export const roles: Role[] = [
       { value: "3x", label: "Conversion Rate", description: "MQL-to-SQL improvement" },
       { value: "85%", label: "Routing Accuracy", description: "Correct rep assignment rate" },
     ],
+    governance: "Auto",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Speed",
+    systems: ["CRM", "MAP"],
   },
   {
     id: "crm-data-steward",
@@ -203,6 +249,11 @@ export const roles: Role[] = [
       { value: "75%", label: "Duplicate Reduction", description: "Deduplication effectiveness" },
       { value: "95%", label: "Completeness", description: "Required field fill rate" },
     ],
+    governance: "Auto",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Reliability",
+    systems: ["CRM"],
   },
   // ERP
   {
@@ -224,6 +275,11 @@ export const roles: Role[] = [
       { value: "15%", label: "Cost Savings", description: "Negotiation and compliance gains" },
       { value: "99%", label: "PO Accuracy", description: "Error-free purchase orders" },
     ],
+    governance: "Approval Required",
+    complexity: "Advanced",
+    timeToValue: "1-2 months",
+    outcomeCategory: "Control",
+    systems: ["ERP", "Finance"],
   },
   {
     id: "inventory-controller",
@@ -244,6 +300,11 @@ export const roles: Role[] = [
       { value: "25%", label: "Carrying Cost Reduction", description: "Inventory holding savings" },
       { value: "95%", label: "Forecast Accuracy", description: "Demand prediction precision" },
     ],
+    governance: "Exception-only",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Reliability",
+    systems: ["ERP", "WMS"],
   },
   {
     id: "order-management-specialist",
@@ -264,6 +325,11 @@ export const roles: Role[] = [
       { value: "70% faster", label: "Order Processing", description: "Order-to-ship acceleration" },
       { value: "98%", label: "Order Accuracy", description: "Error-free fulfillment rate" },
     ],
+    governance: "Exception-only",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Speed",
+    systems: ["ERP", "CRM"],
   },
   {
     id: "production-planning-analyst",
@@ -284,6 +350,11 @@ export const roles: Role[] = [
       { value: "30%", label: "Setup Reduction", description: "Changeover time optimization" },
       { value: "98%", label: "Material Availability", description: "Right materials at right time" },
     ],
+    governance: "Approval Required",
+    complexity: "Advanced",
+    timeToValue: "1-2 months",
+    outcomeCategory: "Reliability",
+    systems: ["ERP"],
   },
   // HRMS
   {
@@ -305,6 +376,11 @@ export const roles: Role[] = [
       { value: "100%", label: "On-Time Filing", description: "Tax compliance record" },
       { value: "80% faster", label: "Processing Time", description: "Payroll cycle acceleration" },
     ],
+    governance: "Approval Required",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Reliability",
+    systems: ["HRMS", "Finance"],
   },
   {
     id: "recruitment-coordinator",
@@ -325,6 +401,11 @@ export const roles: Role[] = [
       { value: "500+", label: "Weekly Screens", description: "Application throughput capacity" },
       { value: "95%", label: "Candidate Satisfaction", description: "Process experience rating" },
     ],
+    governance: "Exception-only",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Speed",
+    systems: ["HRMS", "ATS"],
   },
   {
     id: "employee-onboarding-specialist",
@@ -345,6 +426,11 @@ export const roles: Role[] = [
       { value: "3 days", label: "Time to Productive", description: "New hire ramp acceleration" },
       { value: "98%", label: "Compliance Score", description: "Mandatory training completion" },
     ],
+    governance: "Auto",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Speed",
+    systems: ["HRMS"],
   },
   {
     id: "leave-attendance-manager",
@@ -365,6 +451,11 @@ export const roles: Role[] = [
       { value: "99%", label: "Tracking Accuracy", description: "Time and attendance precision" },
       { value: "100%", label: "Policy Compliance", description: "Automated rule enforcement" },
     ],
+    governance: "Auto",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Speed",
+    systems: ["HRMS"],
   },
   // Operations
   {
@@ -386,6 +477,11 @@ export const roles: Role[] = [
       { value: "20%", label: "Cost Reduction", description: "Logistics spend optimization" },
       { value: "99%", label: "Visibility", description: "End-to-end supply chain tracking" },
     ],
+    governance: "Approval Required",
+    complexity: "Advanced",
+    timeToValue: "1-2 months",
+    outcomeCategory: "Speed",
+    systems: ["ERP", "WMS"],
   },
   {
     id: "quality-assurance-monitor",
@@ -406,6 +502,11 @@ export const roles: Role[] = [
       { value: "100%", label: "Audit Readiness", description: "Always inspection-ready" },
       { value: "30%", label: "Efficiency Gain", description: "Process improvement impact" },
     ],
+    governance: "Exception-only",
+    complexity: "Intermediate",
+    timeToValue: "2-4 weeks",
+    outcomeCategory: "Control",
+    systems: ["ERP", "ITSM"],
   },
   {
     id: "data-entry-processor",
@@ -426,6 +527,11 @@ export const roles: Role[] = [
       { value: "10x faster", label: "Processing Speed", description: "vs. manual data entry" },
       { value: "95%", label: "Automation Rate", description: "Touchless processing" },
     ],
+    governance: "Auto",
+    complexity: "Starter",
+    timeToValue: "<2 weeks",
+    outcomeCategory: "Speed",
+    systems: ["ERP"],
   },
   {
     id: "compliance-officer",
@@ -446,10 +552,31 @@ export const roles: Role[] = [
       { value: "60%", label: "Audit Time Reduction", description: "Preparation efficiency" },
       { value: "Zero", label: "Critical Findings", description: "Clean audit record" },
     ],
+    governance: "Approval Required",
+    complexity: "Advanced",
+    timeToValue: "1-2 months",
+    outcomeCategory: "Control",
+    systems: ["ERP", "Finance", "ITSM"],
   },
 ];
 
 export const departments: Department[] = ["Finance", "CRM", "ERP", "HRMS", "Operations"];
+export const governanceOptions: Governance[] = ["Auto", "Approval Required", "Exception-only"];
+export const complexityOptions: Complexity[] = ["Starter", "Intermediate", "Advanced"];
+export const timeToValueOptions: TimeToValue[] = ["<2 weeks", "2-4 weeks", "1-2 months"];
+export const outcomeCategoryOptions: OutcomeCategory[] = ["Speed", "Reliability", "Cashflow", "Control"];
+export const systemOptions: System[] = ["ATS", "CRM", "ERP", "Finance", "HRMS", "ITSM", "MAP", "WMS"];
+
+export interface FilterState {
+  query: string;
+  department: string;
+  outcomeCategory: string;
+  governance: string;
+  complexity: string;
+  timeToValue: string;
+  systems: string[];
+  sort: string;
+}
 
 export function filterRoles(query: string, department: string): Role[] {
   return roles.filter((role) => {
@@ -460,9 +587,46 @@ export function filterRoles(query: string, department: string): Role[] {
       role.title.toLowerCase().includes(q) ||
       role.description.toLowerCase().includes(q) ||
       role.tags.some((t) => t.toLowerCase().includes(q)) ||
-      role.department.toLowerCase().includes(q);
+      role.department.toLowerCase().includes(q) ||
+      role.functions.some((f) => f.name.toLowerCase().includes(q)) ||
+      role.functions.some((f) => f.skills.some((s) => s.toLowerCase().includes(q)));
     return matchesDept && matchesQuery;
   });
+}
+
+const timeToValueOrder: Record<TimeToValue, number> = { "<2 weeks": 1, "2-4 weeks": 2, "1-2 months": 3 };
+
+export function advancedFilterRoles(filters: FilterState): Role[] {
+  let result = roles.filter((role) => {
+    if (filters.department !== "All" && role.department !== filters.department) return false;
+    if (filters.outcomeCategory !== "All" && role.outcomeCategory !== filters.outcomeCategory) return false;
+    if (filters.governance !== "All" && role.governance !== filters.governance) return false;
+    if (filters.complexity !== "All" && role.complexity !== filters.complexity) return false;
+    if (filters.timeToValue !== "All" && role.timeToValue !== filters.timeToValue) return false;
+    if (filters.systems.length > 0 && !filters.systems.some((s) => role.systems.includes(s as System))) return false;
+
+    if (filters.query) {
+      const q = filters.query.toLowerCase();
+      const matchesQuery =
+        role.title.toLowerCase().includes(q) ||
+        role.description.toLowerCase().includes(q) ||
+        role.tags.some((t) => t.toLowerCase().includes(q)) ||
+        role.department.toLowerCase().includes(q) ||
+        role.functions.some((f) => f.name.toLowerCase().includes(q)) ||
+        role.functions.some((f) => f.skills.some((s) => s.toLowerCase().includes(q)));
+      if (!matchesQuery) return false;
+    }
+
+    return true;
+  });
+
+  if (filters.sort === "name") {
+    result.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (filters.sort === "fastest") {
+    result.sort((a, b) => timeToValueOrder[a.timeToValue] - timeToValueOrder[b.timeToValue]);
+  }
+
+  return result;
 }
 
 export function getRoleById(id: string): Role | undefined {
