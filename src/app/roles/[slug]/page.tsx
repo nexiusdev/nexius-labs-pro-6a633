@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Mic, Star, MessageCircle, FileText } from "lucide-react";
+import { ArrowRight, ChevronRight, Mic, MessageCircle, FileText } from "lucide-react";
 import { roles, getRoleById, getRelatedRoles, departmentColors } from "@/data/roles";
 import Navigation from "@/components/Navigation";
 import RoleCard from "@/components/RoleCard";
+import ShortlistButton from "@/components/ShortlistButton";
 import Footer from "@/components/Footer";
 
 export function generateStaticParams() {
@@ -149,12 +150,7 @@ export default async function RoleDetailPage({
                     <Mic className="w-4 h-4" />
                     Interview This Role
                   </Link>
-                  <button
-                    className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-300 text-slate-600 hover:border-slate-800 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
-                  >
-                    <Star className="w-4 h-4" />
-                    Add Shortlist
-                  </button>
+                  <ShortlistButton roleId={role.id} />
                   <Link
                     href="/#contact"
                     className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white px-5 py-3 rounded-lg font-semibold transition-all text-sm uppercase tracking-wide shadow-md"

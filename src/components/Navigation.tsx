@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Star } from "lucide-react";
+import { useShortlist } from "@/context/ShortlistContext";
 
 const pages = [
   { href: "/", label: "Home" },
@@ -16,6 +17,7 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { count } = useShortlist();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -61,10 +63,13 @@ export default function Navigation() {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           <Link
-            href="/#contact"
-            className="border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+            href="/shortlist"
+            className={`border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
+              pathname === "/shortlist" ? "border-blue-400 text-white" : ""
+            }`}
           >
-            Request Quote
+            <Star className="w-3.5 h-3.5" />
+            Shortlist {count}
           </Link>
           <Link
             href="/#contact"
@@ -97,13 +102,14 @@ export default function Navigation() {
                 {label}
               </Link>
             ))}
+            <Link
+              href="/shortlist"
+              className="text-lg font-medium text-slate-200 hover:text-white transition-colors inline-flex items-center gap-2"
+            >
+              <Star className="w-4 h-4" />
+              Shortlist ({count})
+            </Link>
             <div className="flex flex-col gap-3 mt-4">
-              <Link
-                href="/#contact"
-                className="border border-slate-600 text-slate-300 hover:text-white text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
-              >
-                Request Quote
-              </Link>
               <Link
                 href="/#contact"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
