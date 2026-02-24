@@ -46,7 +46,7 @@ export default function Footer() {
               <Link href="/why-nexius" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 About Us
               </Link>
-              <Link href="/#contact" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
+              <Link href="/contact" className="block text-sm text-slate-400 hover:text-white transition-colors py-1">
                 Contact
               </Link>
               <span className="block text-sm text-slate-500 cursor-default py-1">

@@ -8,11 +8,9 @@ import { useShortlist } from "@/context/ShortlistContext";
 import { useInterviewHistory } from "@/context/InterviewHistoryContext";
 
 const pages = [
-  { href: "/", label: "Home" },
   { href: "/roles", label: "Roles" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/why-nexius", label: "Why Nexius" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navigation() {
