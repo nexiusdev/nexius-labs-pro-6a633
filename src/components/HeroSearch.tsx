@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import Image from "next/image";
 
@@ -11,6 +11,17 @@ interface HeroSearchProps {
 export default function HeroSearch({ onSearch }: HeroSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [workflow, setWorkflow] = useState("All");
+  const [roleCount, setRoleCount] = useState<number>(20);
+
+  useEffect(() => {
+    fetch("/api/catalog/roles")
+      .then((r) => r.json())
+      .then((json) => {
+        const count = Array.isArray(json?.roles) ? json.roles.length : 0;
+        if (count > 0) setRoleCount(count);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleQueryChange = (value: string) => {
     setSearchQuery(value);
@@ -78,7 +89,7 @@ export default function HeroSearch({ onSearch }: HeroSearchProps) {
                 </button>
               </div>
               <p className="text-sm text-slate-400 mt-3">
-                20 digital roles available
+                {roleCount} digital {roleCount === 1 ? "role" : "roles"} available
               </p>
             </div>
           </div>
