@@ -14,7 +14,7 @@ export default function MembershipPrompt() {
   if (shortlistCount <= 2 && interviewCount <= 2) return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-amber-50 border-t border-amber-200 shadow-lg">
       <div className="container-wide py-2 text-sm text-amber-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <p>
           You already have {shortlistCount} shortlist and {interviewCount} interview records. Create an account to save and return anytime.
