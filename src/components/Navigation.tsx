@@ -31,10 +31,12 @@ export default function Navigation() {
     setMobileOpen(false);
   }, [pathname]);
 
+  const forceSolid = pathname === "/auth";
+
   return (
     <nav
       className={`entrance-nav fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        scrolled ? "bg-slate-900/95 backdrop-blur-md shadow-lg" : "bg-transparent"
+        scrolled || forceSolid ? "bg-slate-900/95 backdrop-blur-md shadow-lg" : "bg-transparent"
       }`}
     >
       <div className="container-wide flex items-center justify-between h-16">
