@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { attachVisitorCookie, resolveVisitorId } from "@/lib/visitor-server";
+import { getUserIdFromRequest } from "@/lib/auth-server";
 
 const db = supabaseAdmin.schema("nexius_os");
 type Msg = { role: "system" | "user" | "assistant"; text: string; timestamp: number };
 
 export async function GET(req: NextRequest) {
   const visitorId = resolveVisitorId(req, req.nextUrl.searchParams.get("visitorId"));
+  const userId = await getUserIdFromRequest(req);
 
-  const { data: sessionsRaw } = await db
+  if (userId) {
+    await db.from("interview_sessions").update({ user_id: userId }).eq("visitor_id", visitorId).is("user_id", null);
+  }
+
+  let query = db
     .from("interview_sessions")
     .select("id,role_id,started_at,last_active_at")
-    .eq("visitor_id", visitorId)
     .order("started_at", { ascending: true });
+  query = userId ? query.eq("user_id", userId) : query.eq("visitor_id", visitorId);
+  const { data: sessionsRaw } = await query;
 
   const sessions: Record<string, { roleId: string; messages: Msg[]; startedAt: number; lastActiveAt: number }> = {};
 
@@ -41,6 +48,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const visitorId = resolveVisitorId(req, body?.visitorId);
+  const userId = await getUserIdFromRequest(req);
   const roleId: string | undefined = body?.roleId;
   const messages: Msg[] = Array.isArray(body?.messages) ? body.messages : [];
 
@@ -48,19 +56,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "roleId required" }, { status: 400 });
   }
 
-  let { data: session } = await db
+  if (userId) {
+    await db.from("interview_sessions").update({ user_id: userId }).eq("visitor_id", visitorId).is("user_id", null);
+  }
+
+  let query = db
     .from("interview_sessions")
     .select("id")
-    .eq("visitor_id", visitorId)
     .eq("role_id", roleId)
     .order("started_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+  query = userId ? query.eq("user_id", userId) : query.eq("visitor_id", visitorId);
+  let { data: session } = await query.maybeSingle();
 
   if (!session) {
     const created = await db
       .from("interview_sessions")
-      .insert({ visitor_id: visitorId, role_id: roleId })
+      .insert({ visitor_id: visitorId, user_id: userId, role_id: roleId })
       .select("id")
       .single();
     if (created.error) return NextResponse.json({ error: created.error.message }, { status: 500 });

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import { ShortlistProvider } from "@/context/ShortlistContext";
 import { InterviewHistoryProvider } from "@/context/InterviewHistoryContext";
+import { AuthProvider } from "@/context/AuthContext";
+import MembershipPrompt from "@/components/MembershipPrompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -69,9 +71,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${geistMono.variable} antialiased`}>
-        <ShortlistProvider>
-          <InterviewHistoryProvider>{children}</InterviewHistoryProvider>
-        </ShortlistProvider>
+        <AuthProvider>
+          <ShortlistProvider>
+            <InterviewHistoryProvider>
+              <MembershipPrompt />
+              {children}
+            </InterviewHistoryProvider>
+          </ShortlistProvider>
+        </AuthProvider>
       </body>
     </html>
   );

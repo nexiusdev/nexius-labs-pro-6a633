@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { getVisitorId } from "@/lib/visitorId";
+import { getAuthHeaders } from "@/lib/auth-client";
 
 interface ShortlistContextType {
   ids: string[];
@@ -37,7 +38,8 @@ export function ShortlistProvider({ children }: { children: ReactNode }) {
 
       try {
         const visitorId = getVisitorId();
-        const res = await fetch(`/api/shortlist?visitorId=${encodeURIComponent(visitorId)}`);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/shortlist?visitorId=${encodeURIComponent(visitorId)}`, { headers });
         const json = await res.json();
         if (Array.isArray(json?.roleIds)) setIds(json.roleIds);
       } catch {}
@@ -55,11 +57,14 @@ export function ShortlistProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
 
     const visitorId = getVisitorId();
-    fetch("/api/shortlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId, roleIds: ids }),
-    }).catch(() => {});
+    (async () => {
+      const authHeaders = await getAuthHeaders();
+      fetch("/api/shortlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({ visitorId, roleIds: ids }),
+      }).catch(() => {});
+    })();
   }, [ids, loaded]);
 
   const add = (id: string) => setIds((prev) => (prev.includes(id) ? prev : [...prev, id]));

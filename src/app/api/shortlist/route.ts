@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { attachVisitorCookie, resolveVisitorId } from "@/lib/visitor-server";
+import { getUserIdFromRequest } from "@/lib/auth-server";
 
 const db = supabaseAdmin.schema("nexius_os");
 
 export async function GET(req: NextRequest) {
   const visitorId = resolveVisitorId(req, req.nextUrl.searchParams.get("visitorId"));
+  const userId = await getUserIdFromRequest(req);
 
-  const { data: session } = await db
-    .from("shortlist_sessions")
-    .select("id")
-    .eq("visitor_id", visitorId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  if (userId) {
+    await db.from("shortlist_sessions").update({ user_id: userId }).eq("visitor_id", visitorId).is("user_id", null);
+  }
+
+  let query = db.from("shortlist_sessions").select("id").order("created_at", { ascending: true }).limit(1);
+  query = userId ? query.eq("user_id", userId) : query.eq("visitor_id", visitorId);
+  const { data: session } = await query.maybeSingle();
 
   if (!session) return attachVisitorCookie(NextResponse.json({ roleIds: [] }), visitorId);
 
@@ -32,18 +34,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const visitorId = resolveVisitorId(req, body?.visitorId);
+  const userId = await getUserIdFromRequest(req);
   const roleIds: string[] = Array.isArray(body?.roleIds) ? body.roleIds : [];
 
-  let { data: session } = await db
-    .from("shortlist_sessions")
-    .select("id")
-    .eq("visitor_id", visitorId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  if (userId) {
+    await db.from("shortlist_sessions").update({ user_id: userId }).eq("visitor_id", visitorId).is("user_id", null);
+  }
+
+  let query = db.from("shortlist_sessions").select("id").order("created_at", { ascending: true }).limit(1);
+  query = userId ? query.eq("user_id", userId) : query.eq("visitor_id", visitorId);
+  let { data: session } = await query.maybeSingle();
 
   if (!session) {
-    const created = await db.from("shortlist_sessions").insert({ visitor_id: visitorId }).select("id").single();
+    const created = await db
+      .from("shortlist_sessions")
+      .insert({ visitor_id: visitorId, user_id: userId })
+      .select("id")
+      .single();
     if (created.error) return NextResponse.json({ error: created.error.message }, { status: 500 });
     session = created.data;
   }

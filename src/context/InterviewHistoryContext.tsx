@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { getVisitorId } from "@/lib/visitorId";
+import { getAuthHeaders } from "@/lib/auth-client";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -54,7 +55,8 @@ export function InterviewHistoryProvider({ children }: { children: ReactNode }) 
 
       try {
         const visitorId = getVisitorId();
-        const res = await fetch(`/api/interviews?visitorId=${encodeURIComponent(visitorId)}`);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/interviews?visitorId=${encodeURIComponent(visitorId)}`, { headers });
         const json = await res.json();
         if (json?.sessions && typeof json.sessions === "object") {
           setSessions(json.sessions);
@@ -110,15 +112,18 @@ export function InterviewHistoryProvider({ children }: { children: ReactNode }) 
       };
 
       const visitorId = getVisitorId();
-      fetch("/api/interviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          visitorId,
-          roleId,
-          messages: next[roleId].messages,
-        }),
-      }).catch(() => {});
+      (async () => {
+        const authHeaders = await getAuthHeaders();
+        fetch("/api/interviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders },
+          body: JSON.stringify({
+            visitorId,
+            roleId,
+            messages: next[roleId].messages,
+          }),
+        }).catch(() => {});
+      })();
 
       return next;
     });
