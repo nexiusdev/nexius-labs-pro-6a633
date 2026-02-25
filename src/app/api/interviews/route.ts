@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { attachVisitorCookie, resolveVisitorId } from "@/lib/visitor-server";
 
 const db = supabaseAdmin.schema("nexius_os");
 type Msg = { role: "system" | "user" | "assistant"; text: string; timestamp: number };
 
 export async function GET(req: NextRequest) {
-  const visitorId = req.nextUrl.searchParams.get("visitorId");
-  if (!visitorId) return NextResponse.json({ sessions: {} });
+  const visitorId = resolveVisitorId(req, req.nextUrl.searchParams.get("visitorId"));
 
   const { data: sessionsRaw } = await db
     .from("interview_sessions")
@@ -35,17 +35,17 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  return NextResponse.json({ sessions });
+  return attachVisitorCookie(NextResponse.json({ sessions }), visitorId);
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const visitorId: string | undefined = body?.visitorId;
+  const visitorId = resolveVisitorId(req, body?.visitorId);
   const roleId: string | undefined = body?.roleId;
   const messages: Msg[] = Array.isArray(body?.messages) ? body.messages : [];
 
-  if (!visitorId || !roleId) {
-    return NextResponse.json({ error: "visitorId and roleId required" }, { status: 400 });
+  if (!roleId) {
+    return NextResponse.json({ error: "roleId required" }, { status: 400 });
   }
 
   let { data: session } = await db
@@ -83,5 +83,13 @@ export async function POST(req: NextRequest) {
 
   await db.from("interview_sessions").update({ last_active_at: new Date().toISOString() }).eq("id", session.id);
 
-  return NextResponse.json({ ok: true });
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  await db.from("visitor_events").insert({
+    visitor_id: visitorId,
+    event_type: "interview_updated",
+    role_id: roleId,
+    payload: { user_message_count: userMessageCount, total_messages: messages.length },
+  });
+
+  return attachVisitorCookie(NextResponse.json({ ok: true }), visitorId);
 }

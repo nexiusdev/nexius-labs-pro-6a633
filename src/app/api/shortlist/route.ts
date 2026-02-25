@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { attachVisitorCookie, resolveVisitorId } from "@/lib/visitor-server";
 
 const db = supabaseAdmin.schema("nexius_os");
 
 export async function GET(req: NextRequest) {
-  const visitorId = req.nextUrl.searchParams.get("visitorId");
-  if (!visitorId) return NextResponse.json({ roleIds: [] });
+  const visitorId = resolveVisitorId(req, req.nextUrl.searchParams.get("visitorId"));
 
   const { data: session } = await db
     .from("shortlist_sessions")
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     .limit(1)
     .maybeSingle();
 
-  if (!session) return NextResponse.json({ roleIds: [] });
+  if (!session) return attachVisitorCookie(NextResponse.json({ roleIds: [] }), visitorId);
 
   const { data: items } = await db
     .from("shortlist_items")
@@ -23,15 +23,16 @@ export async function GET(req: NextRequest) {
     .eq("session_id", session.id)
     .order("added_at", { ascending: true });
 
-  return NextResponse.json({ roleIds: (items ?? []).map((i) => i.role_id as string) });
+  return attachVisitorCookie(
+    NextResponse.json({ roleIds: (items ?? []).map((i) => i.role_id as string) }),
+    visitorId
+  );
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const visitorId: string | undefined = body?.visitorId;
+  const visitorId = resolveVisitorId(req, body?.visitorId);
   const roleIds: string[] = Array.isArray(body?.roleIds) ? body.roleIds : [];
-
-  if (!visitorId) return NextResponse.json({ error: "visitorId required" }, { status: 400 });
 
   let { data: session } = await db
     .from("shortlist_sessions")
@@ -55,5 +56,11 @@ export async function POST(req: NextRequest) {
     if (ins.error) return NextResponse.json({ error: ins.error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  await db.from("visitor_events").insert({
+    visitor_id: visitorId,
+    event_type: "shortlist_updated",
+    payload: { shortlist_count: roleIds.length },
+  });
+
+  return attachVisitorCookie(NextResponse.json({ ok: true }), visitorId);
 }
