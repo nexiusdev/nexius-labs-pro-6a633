@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+const db = supabaseAdmin.schema("nexius_os");
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -11,22 +13,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "name and email are required" }, { status: 400 });
   }
 
-  await db.query(
-    `insert into nexius_os.leads
-      (full_name, company, email, phone, company_size, interest, message, source_page, referrer)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-    [
-      fullName,
-      (body?.company || null) as string | null,
-      email,
-      (body?.phone || null) as string | null,
-      (body?.companySize || null) as string | null,
-      (body?.interest || null) as string | null,
-      (body?.message || null) as string | null,
-      (body?.sourcePage || null) as string | null,
-      (body?.referrer || null) as string | null,
-    ]
-  );
+  const { error } = await db.from("leads").insert({
+    full_name: fullName,
+    company: body?.company || null,
+    email,
+    phone: body?.phone || null,
+    company_size: body?.companySize || null,
+    interest: body?.interest || null,
+    message: body?.message || null,
+    source_page: body?.sourcePage || null,
+    referrer: body?.referrer || null,
+  });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ ok: true });
 }

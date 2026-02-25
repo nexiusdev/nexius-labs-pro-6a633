@@ -1,35 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
+const db = supabaseAdmin.schema("nexius_os");
 type Msg = { role: "system" | "user" | "assistant"; text: string; timestamp: number };
 
 export async function GET(req: NextRequest) {
   const visitorId = req.nextUrl.searchParams.get("visitorId");
   if (!visitorId) return NextResponse.json({ sessions: {} });
 
-  const sessionsRes = await db.query(
-    `select id, role_id, extract(epoch from started_at)*1000 as started_at_ms, extract(epoch from last_active_at)*1000 as last_active_at_ms
-     from nexius_os.interview_sessions
-     where visitor_id = $1`,
-    [visitorId]
-  );
+  const { data: sessionsRaw } = await db
+    .from("interview_sessions")
+    .select("id,role_id,started_at,last_active_at")
+    .eq("visitor_id", visitorId)
+    .order("started_at", { ascending: true });
 
   const sessions: Record<string, { roleId: string; messages: Msg[]; startedAt: number; lastActiveAt: number }> = {};
 
-  for (const row of sessionsRes.rows) {
-    const msgsRes = await db.query(
-      `select role, text, coalesce(timestamp_ms, (extract(epoch from created_at)*1000)::bigint) as timestamp_ms
-       from nexius_os.interview_messages
-       where session_id = $1
-       order by coalesce(seq,0) asc, created_at asc`,
-      [row.id]
-    );
+  for (const s of sessionsRaw ?? []) {
+    const { data: msgs } = await db
+      .from("interview_messages")
+      .select("role,text,timestamp_ms,created_at,seq")
+      .eq("session_id", s.id)
+      .order("seq", { ascending: true });
 
-    sessions[row.role_id] = {
-      roleId: row.role_id,
-      messages: msgsRes.rows.map((m) => ({ role: m.role, text: m.text, timestamp: Number(m.timestamp_ms) })),
-      startedAt: Number(row.started_at_ms || Date.now()),
-      lastActiveAt: Number(row.last_active_at_ms || Date.now()),
+    sessions[s.role_id as string] = {
+      roleId: s.role_id as string,
+      messages: (msgs ?? []).map((m) => ({
+        role: m.role as Msg["role"],
+        text: m.text as string,
+        timestamp: Number(m.timestamp_ms ?? Date.parse(m.created_at as string)),
+      })),
+      startedAt: Date.parse(s.started_at as string),
+      lastActiveAt: Date.parse(s.last_active_at as string),
     };
   }
 
@@ -46,49 +48,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "visitorId and roleId required" }, { status: 400 });
   }
 
-  const client = await db.connect();
-  try {
-    await client.query("begin");
+  let { data: session } = await db
+    .from("interview_sessions")
+    .select("id")
+    .eq("visitor_id", visitorId)
+    .eq("role_id", roleId)
+    .order("started_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-    const existing = await client.query(
-      `select id from nexius_os.interview_sessions where visitor_id=$1 and role_id=$2 order by started_at asc limit 1`,
-      [visitorId, roleId]
-    );
-
-    let sessionId = existing.rows[0]?.id as string | undefined;
-    if (!sessionId) {
-      const created = await client.query(
-        `insert into nexius_os.interview_sessions(visitor_id, role_id)
-         values($1,$2)
-         returning id`,
-        [visitorId, roleId]
-      );
-      sessionId = created.rows[0]?.id;
-    }
-    if (!sessionId) throw new Error("Unable to resolve interview session");
-
-    await client.query(`delete from nexius_os.interview_messages where session_id = $1`, [sessionId]);
-
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
-      await client.query(
-        `insert into nexius_os.interview_messages(session_id, role, text, timestamp_ms, seq)
-         values($1,$2,$3,$4,$5)`,
-        [sessionId, msg.role, msg.text, msg.timestamp, i + 1]
-      );
-    }
-
-    await client.query(
-      `update nexius_os.interview_sessions set last_active_at = now() where id = $1`,
-      [sessionId]
-    );
-
-    await client.query("commit");
-    return NextResponse.json({ ok: true });
-  } catch {
-    await client.query("rollback");
-    return NextResponse.json({ error: "failed to save interview" }, { status: 500 });
-  } finally {
-    client.release();
+  if (!session) {
+    const created = await db
+      .from("interview_sessions")
+      .insert({ visitor_id: visitorId, role_id: roleId })
+      .select("id")
+      .single();
+    if (created.error) return NextResponse.json({ error: created.error.message }, { status: 500 });
+    session = created.data;
   }
+
+  await db.from("interview_messages").delete().eq("session_id", session.id);
+
+  if (messages.length > 0) {
+    const rows = messages.map((m, idx) => ({
+      session_id: session!.id,
+      role: m.role,
+      text: m.text,
+      timestamp_ms: m.timestamp,
+      seq: idx + 1,
+    }));
+    const ins = await db.from("interview_messages").insert(rows);
+    if (ins.error) return NextResponse.json({ error: ins.error.message }, { status: 500 });
+  }
+
+  await db.from("interview_sessions").update({ last_active_at: new Date().toISOString() }).eq("id", session.id);
+
+  return NextResponse.json({ ok: true });
 }

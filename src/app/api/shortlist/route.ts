@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+const db = supabaseAdmin.schema("nexius_os");
 
 export async function GET(req: NextRequest) {
   const visitorId = req.nextUrl.searchParams.get("visitorId");
   if (!visitorId) return NextResponse.json({ roleIds: [] });
 
-  const result = await db.query(
-    `select si.role_id
-     from nexius_os.shortlist_sessions ss
-     join nexius_os.shortlist_items si on si.session_id = ss.id
-     where ss.visitor_id = $1
-     order by si.added_at asc`,
-    [visitorId]
-  );
+  const { data: session } = await db
+    .from("shortlist_sessions")
+    .select("id")
+    .eq("visitor_id", visitorId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-  return NextResponse.json({ roleIds: result.rows.map((r) => r.role_id as string) });
+  if (!session) return NextResponse.json({ roleIds: [] });
+
+  const { data: items } = await db
+    .from("shortlist_items")
+    .select("role_id")
+    .eq("session_id", session.id)
+    .order("added_at", { ascending: true });
+
+  return NextResponse.json({ roleIds: (items ?? []).map((i) => i.role_id as string) });
 }
 
 export async function POST(req: NextRequest) {
@@ -22,49 +31,29 @@ export async function POST(req: NextRequest) {
   const visitorId: string | undefined = body?.visitorId;
   const roleIds: string[] = Array.isArray(body?.roleIds) ? body.roleIds : [];
 
-  if (!visitorId) {
-    return NextResponse.json({ error: "visitorId required" }, { status: 400 });
+  if (!visitorId) return NextResponse.json({ error: "visitorId required" }, { status: 400 });
+
+  let { data: session } = await db
+    .from("shortlist_sessions")
+    .select("id")
+    .eq("visitor_id", visitorId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!session) {
+    const created = await db.from("shortlist_sessions").insert({ visitor_id: visitorId }).select("id").single();
+    if (created.error) return NextResponse.json({ error: created.error.message }, { status: 500 });
+    session = created.data;
   }
 
-  const client = await db.connect();
-  try {
-    await client.query("begin");
+  await db.from("shortlist_items").delete().eq("session_id", session.id);
 
-    const existing = await client.query(
-      `select id from nexius_os.shortlist_sessions where visitor_id = $1 order by created_at asc limit 1`,
-      [visitorId]
-    );
-
-    let sessionId: string | undefined = existing.rows[0]?.id;
-    if (!sessionId) {
-      const created = await client.query(
-        `insert into nexius_os.shortlist_sessions (visitor_id)
-         values ($1)
-         returning id`,
-        [visitorId]
-      );
-      sessionId = created.rows[0]?.id;
-    }
-
-    if (!sessionId) throw new Error("Unable to resolve shortlist session");
-
-    await client.query(`delete from nexius_os.shortlist_items where session_id = $1`, [sessionId]);
-
-    for (const roleId of roleIds) {
-      await client.query(
-        `insert into nexius_os.shortlist_items(session_id, role_id)
-         values ($1,$2)
-         on conflict (session_id, role_id) do nothing`,
-        [sessionId, roleId]
-      );
-    }
-
-    await client.query("commit");
-    return NextResponse.json({ ok: true });
-  } catch {
-    await client.query("rollback");
-    return NextResponse.json({ error: "failed to save shortlist" }, { status: 500 });
-  } finally {
-    client.release();
+  if (roleIds.length > 0) {
+    const rows = roleIds.map((roleId) => ({ session_id: session.id, role_id: roleId }));
+    const ins = await db.from("shortlist_items").insert(rows);
+    if (ins.error) return NextResponse.json({ error: ins.error.message }, { status: 500 });
   }
+
+  return NextResponse.json({ ok: true });
 }
