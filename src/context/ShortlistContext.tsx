@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { getVisitorId } from "@/lib/visitorId";
 
 interface ShortlistContextType {
   ids: string[];
@@ -28,18 +29,37 @@ export function ShortlistProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setIds(JSON.parse(stored));
-    } catch {}
-    setLoaded(true);
+    const hydrate = async () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setIds(JSON.parse(stored));
+      } catch {}
+
+      try {
+        const visitorId = getVisitorId();
+        const res = await fetch(`/api/shortlist?visitorId=${encodeURIComponent(visitorId)}`);
+        const json = await res.json();
+        if (Array.isArray(json?.roleIds)) setIds(json.roleIds);
+      } catch {}
+
+      setLoaded(true);
+    };
+
+    hydrate();
   }, []);
 
   // Persist to localStorage on change
   useEffect(() => {
-    if (loaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    }
+    if (!loaded) return;
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+
+    const visitorId = getVisitorId();
+    fetch("/api/shortlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId, roleIds: ids }),
+    }).catch(() => {});
   }, [ids, loaded]);
 
   const add = (id: string) => setIds((prev) => (prev.includes(id) ? prev : [...prev, id]));

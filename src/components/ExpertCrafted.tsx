@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, GraduationCap, Briefcase } from "lucide-react";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
-import { experts } from "@/data/experts";
+import type { Expert } from "@/data/experts";
 
 const highlights = [
   {
@@ -30,8 +31,16 @@ const highlights = [
 ];
 
 export default function ExpertCrafted() {
-  // Show first 6 experts as avatars
-  const featured = experts.slice(0, 6);
+  const [experts, setExperts] = useState<Expert[]>([]);
+
+  useEffect(() => {
+    fetch("/api/catalog/experts")
+      .then((r) => r.json())
+      .then((json) => setExperts(Array.isArray(json?.experts) ? json.experts : []))
+      .catch(() => {});
+  }, []);
+
+  const featured = useMemo(() => experts.slice(0, 6), [experts]);
 
   return (
     <section className="bg-slate-50 section-padding">

@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { Eye, Star, Mic } from "lucide-react";
 import { workflowColors, type Role } from "@/data/roles";
-import { getExpertByRoleId } from "@/data/experts";
+import type { Expert } from "@/data/experts";
 import { useShortlist } from "@/context/ShortlistContext";
 
-export default function RoleCard({ role }: { role: Role }) {
+export default function RoleCard({ role, expert }: { role: Role; expert?: Expert }) {
   const colors = workflowColors[role.workflow];
   const { toggle, has } = useShortlist();
   const isShortlisted = has(role.id);
-  const expert = getExpertByRoleId(role.id);
 
   return (
     <div

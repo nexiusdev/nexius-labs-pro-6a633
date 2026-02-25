@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Mic, MessageCircle, FileText } from "lucide-react";
-import { roles, getRoleById, getRelatedRoles, workflowColors } from "@/data/roles";
+import { workflowColors } from "@/data/roles";
+import { getAllRolesDb, getRoleByIdDb } from "@/lib/catalog";
 import Navigation from "@/components/Navigation";
 import RoleCard from "@/components/RoleCard";
 import ShortlistButton from "@/components/ShortlistButton";
 import Footer from "@/components/Footer";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const roles = await getAllRolesDb();
   return roles.map((role) => ({ slug: role.id }));
 }
 
@@ -18,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const role = getRoleById(slug);
+  const role = await getRoleByIdDb(slug);
   if (!role) return { title: "Role Not Found" };
   return {
     title: `${role.title} — Nexius Labs`,
@@ -32,11 +34,13 @@ export default async function RoleDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const role = getRoleById(slug);
+  const role = await getRoleByIdDb(slug);
   if (!role) notFound();
 
   const colors = workflowColors[role.workflow];
-  const related = getRelatedRoles(role);
+  const related = (await getAllRolesDb())
+    .filter((r) => r.workflow === role.workflow && r.id !== role.id)
+    .slice(0, 3);
 
   return (
     <>

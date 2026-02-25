@@ -1,14 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useShortlist } from "@/context/ShortlistContext";
-import { getRoleById, workflowColors, roles, type Role, type System } from "@/data/roles";
+import { workflowColors, type Role, type System } from "@/data/roles";
+import type { Expert } from "@/data/experts";
 import RoleCard from "@/components/RoleCard";
 
 export default function ShortlistContent() {
   const { ids, remove } = useShortlist();
-  const shortlistedRoles = ids.map(getRoleById).filter(Boolean);
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
+  const [expertByRole, setExpertByRole] = useState<Record<string, Expert>>({});
+
+  useEffect(() => {
+    fetch("/api/catalog/roles")
+      .then((r) => r.json())
+      .then((json) => {
+        setAllRoles(Array.isArray(json?.roles) ? json.roles : []);
+        setExpertByRole(json?.expertByRole ?? {});
+      })
+      .catch(() => {});
+  }, []);
+
+  const roleMap = useMemo(() => Object.fromEntries(allRoles.map((r) => [r.id, r])), [allRoles]);
+  const shortlistedRoles = ids.map((id) => roleMap[id]).filter(Boolean);
 
   const totalFunctions = shortlistedRoles.reduce((sum, r) => sum + (r?.functionCount ?? 0), 0);
   const totalSkills = shortlistedRoles.reduce(
@@ -39,7 +55,7 @@ export default function ShortlistContent() {
   );
 
   const recommended = n > 0
-    ? roles
+    ? allRoles
         .filter((r) => !shortlistedIds.has(r.id))
         .map((r) => {
           let score = 0;
@@ -205,7 +221,7 @@ export default function ShortlistContent() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {recommended.map((role) => (
-            <RoleCard key={role.id} role={role} />
+            <RoleCard key={role.id} role={role} expert={expertByRole[role.id]} />
           ))}
         </div>
       </section>

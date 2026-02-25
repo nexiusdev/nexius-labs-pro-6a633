@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { roles, getRoleById, workflowColors } from "@/data/roles";
+import { workflowColors } from "@/data/roles";
+import { getAllRolesDb, getRoleByIdDb } from "@/lib/catalog";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import InterviewChat from "@/components/InterviewChat";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const roles = await getAllRolesDb();
   return roles.map((role) => ({ slug: role.id }));
 }
 
@@ -17,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const role = getRoleById(slug);
+  const role = await getRoleByIdDb(slug);
   if (!role) return { title: "Role Not Found" };
   return {
     title: `Interview: ${role.title} — Nexius Labs`,
@@ -31,7 +33,7 @@ export default async function InterviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const role = getRoleById(slug);
+  const role = await getRoleByIdDb(slug);
   if (!role) notFound();
 
   const colors = workflowColors[role.workflow];

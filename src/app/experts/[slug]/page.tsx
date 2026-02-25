@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Briefcase, GraduationCap, Award, ArrowRight, ChevronRight } from "lucide-react";
-import { experts, getExpertById } from "@/data/experts";
-import { getRoleById, workflowColors } from "@/data/roles";
+import { workflowColors } from "@/data/roles";
+import { getAllExpertsDb, getAllRolesDb, getExpertByIdDb } from "@/lib/catalog";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const experts = await getAllExpertsDb();
   return experts.map((expert) => ({ slug: expert.id }));
 }
 
@@ -17,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const expert = getExpertById(slug);
+  const expert = await getExpertByIdDb(slug);
   if (!expert) return { title: "Expert Not Found" };
   return {
     title: `${expert.name} — ${expert.title} | Nexius Labs`,
@@ -31,12 +32,11 @@ export default async function ExpertProfilePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const expert = getExpertById(slug);
+  const expert = await getExpertByIdDb(slug);
   if (!expert) notFound();
 
-  const createdRoles = expert.roleIds
-    .map(getRoleById)
-    .filter(Boolean);
+  const allRoles = await getAllRolesDb();
+  const createdRoles = allRoles.filter((r) => expert.roleIds.includes(r.id));
 
   return (
     <>

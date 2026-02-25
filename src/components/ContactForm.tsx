@@ -10,10 +10,22 @@ export default function ContactForm() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    fetch("/", {
+    const payload = {
+      name: String(formData.get("name") || ""),
+      company: String(formData.get("company") || ""),
+      email: String(formData.get("email") || ""),
+      phone: String(formData.get("phone") || ""),
+      companySize: String(formData.get("company-size") || ""),
+      interest: String(formData.get("interest") || ""),
+      message: String(formData.get("message") || ""),
+      sourcePage: typeof window !== "undefined" ? window.location.pathname : null,
+      referrer: typeof document !== "undefined" ? document.referrer : null,
+    };
+
+    fetch("/api/leads", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(formData as unknown as Record<string, string>).toString(),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     })
       .then(() => setSubmitted(true))
       .catch(() => setSubmitted(true));
@@ -42,13 +54,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form
-      name="contact"
-      method="POST"
-      data-netlify="true"
-      onSubmit={handleSubmit}
-    >
-      <input type="hidden" name="form-name" value="contact" />
+    <form onSubmit={handleSubmit}>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

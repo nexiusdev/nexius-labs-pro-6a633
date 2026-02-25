@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { getVisitorId } from "@/lib/visitorId";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -45,11 +46,25 @@ export function InterviewHistoryProvider({ children }: { children: ReactNode }) 
 
   // Load from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setSessions(JSON.parse(stored));
-    } catch {}
-    setLoaded(true);
+    const hydrate = async () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setSessions(JSON.parse(stored));
+      } catch {}
+
+      try {
+        const visitorId = getVisitorId();
+        const res = await fetch(`/api/interviews?visitorId=${encodeURIComponent(visitorId)}`);
+        const json = await res.json();
+        if (json?.sessions && typeof json.sessions === "object") {
+          setSessions(json.sessions);
+        }
+      } catch {}
+
+      setLoaded(true);
+    };
+
+    hydrate();
   }, []);
 
   // Persist to localStorage on change
@@ -85,7 +100,7 @@ export function InterviewHistoryProvider({ children }: { children: ReactNode }) 
     setSessions((prev) => {
       const session = prev[roleId];
       if (!session) return prev;
-      return {
+      const next = {
         ...prev,
         [roleId]: {
           ...session,
@@ -93,6 +108,19 @@ export function InterviewHistoryProvider({ children }: { children: ReactNode }) 
           lastActiveAt: Date.now(),
         },
       };
+
+      const visitorId = getVisitorId();
+      fetch("/api/interviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitorId,
+          roleId,
+          messages: next[roleId].messages,
+        }),
+      }).catch(() => {});
+
+      return next;
     });
   }, []);
 

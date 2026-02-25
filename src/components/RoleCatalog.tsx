@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   workflows,
   governanceOptions,
@@ -8,9 +8,10 @@ import {
   timeToValueOptions,
   outcomeCategoryOptions,
   systemOptions,
-  advancedFilterRoles,
   type FilterState,
+  type Role,
 } from "@/data/roles";
+import type { Expert } from "@/data/experts";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
@@ -56,7 +57,52 @@ const defaultFilters: FilterState = {
 export default function RoleCatalog() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
-  const filtered = useMemo(() => advancedFilterRoles(filters), [filters]);
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
+  const [expertByRole, setExpertByRole] = useState<Record<string, Expert>>({});
+
+  useEffect(() => {
+    fetch("/api/catalog/roles")
+      .then((r) => r.json())
+      .then((json) => {
+        setAllRoles(Array.isArray(json?.roles) ? json.roles : []);
+        setExpertByRole(json?.expertByRole ?? {});
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = useMemo(() => {
+    return allRoles
+      .filter((r) => {
+        if (filters.workflow !== "All" && r.workflow !== filters.workflow) return false;
+        if (filters.outcomeCategory !== "All" && r.outcomeCategory !== filters.outcomeCategory) return false;
+        if (filters.governance !== "All" && r.governance !== filters.governance) return false;
+        if (filters.complexity !== "All" && r.complexity !== filters.complexity) return false;
+        if (filters.timeToValue !== "All" && r.timeToValue !== filters.timeToValue) return false;
+        if (filters.systems.length > 0 && !filters.systems.every((s) => r.systems.includes(s as never))) return false;
+
+        const q = filters.query.trim().toLowerCase();
+        if (!q) return true;
+        const haystack = [
+          r.title,
+          r.description,
+          r.detailedDescription,
+          ...r.tags,
+          ...r.functions.map((f) => f.name),
+          ...r.functions.flatMap((f) => f.skills),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(q);
+      })
+      .sort((a, b) => {
+        if (filters.sort === "name") return a.title.localeCompare(b.title);
+        if (filters.sort === "fastest") {
+          const rank = { "<2 weeks": 1, "2-4 weeks": 2, "1-2 months": 3 } as Record<string, number>;
+          return rank[a.timeToValue] - rank[b.timeToValue];
+        }
+        return 0;
+      });
+  }, [allRoles, filters]);
 
   const update = (patch: Partial<FilterState>) =>
     setFilters((prev) => ({ ...prev, ...patch }));
@@ -216,7 +262,7 @@ export default function RoleCatalog() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {filtered.map((role, index) => (
             <AnimateOnScroll key={role.id} animation="fade-up" delay={Math.min(index * 50, 300)}>
-              <RoleCard role={role} />
+              <RoleCard role={role} expert={expertByRole[role.id]} />
             </AnimateOnScroll>
           ))}
           <CustomRoleCTA />

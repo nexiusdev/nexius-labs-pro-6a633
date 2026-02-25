@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   workflows,
   workflowColors,
   workflowBanners,
-  filterRoles,
   type Role,
   type Workflow,
 } from "@/data/roles";
+import type { Expert } from "@/data/experts";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
 import Link from "next/link";
@@ -26,10 +26,37 @@ export default function RoleResults({
   searchQuery,
   department,
 }: RoleResultsProps) {
-  const filteredRoles = useMemo(
-    () => filterRoles(searchQuery, department),
-    [searchQuery, department]
-  );
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
+  const [expertByRole, setExpertByRole] = useState<Record<string, Expert>>({});
+
+  useEffect(() => {
+    fetch("/api/catalog/roles")
+      .then((r) => r.json())
+      .then((json) => {
+        setAllRoles(Array.isArray(json?.roles) ? json.roles : []);
+        setExpertByRole(json?.expertByRole ?? {});
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredRoles = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allRoles.filter((r) => {
+      if (department !== "All" && r.workflow !== department) return false;
+      if (!q) return true;
+      const haystack = [
+        r.title,
+        r.description,
+        r.detailedDescription,
+        ...r.tags,
+        ...r.functions.map((f) => f.name),
+        ...r.functions.flatMap((f) => f.skills),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [allRoles, searchQuery, department]);
 
   const groupedByWorkflow = useMemo(() => {
     const grouped: Partial<Record<Workflow, Role[]>> = {};
@@ -120,7 +147,7 @@ export default function RoleResults({
                         animation="fade-up"
                         delay={index * 100}
                       >
-                        <RoleCard role={role} />
+                        <RoleCard role={role} expert={expertByRole[role.id]} />
                       </AnimateOnScroll>
                     ))}
                   </div>

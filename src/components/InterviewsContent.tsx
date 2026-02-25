@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mic, Trash2, ChevronDown, ChevronUp, Clock, MessageCircle } from "lucide-react";
 import { useInterviewHistory } from "@/context/InterviewHistoryContext";
-import { getRoleById, workflowColors } from "@/data/roles";
+import { workflowColors, type Role } from "@/data/roles";
 
 function formatTime(ts: number) {
   const d = new Date(ts);
@@ -20,6 +20,17 @@ function formatTime(ts: number) {
 export default function InterviewsContent() {
   const { sessions, interviewedRoleIds, deleteSession, clearAll } = useInterviewHistory();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [rolesMap, setRolesMap] = useState<Record<string, Role>>({});
+
+  useEffect(() => {
+    fetch("/api/catalog/roles")
+      .then((r) => r.json())
+      .then((json) => {
+        const list: Role[] = Array.isArray(json?.roles) ? json.roles : [];
+        setRolesMap(Object.fromEntries(list.map((r) => [r.id, r])));
+      })
+      .catch(() => {});
+  }, []);
 
   // Sort by most recently active
   const sortedIds = [...interviewedRoleIds].sort(
@@ -51,7 +62,7 @@ export default function InterviewsContent() {
         ) : (
           <div className="space-y-4 mt-8">
             {sortedIds.map((roleId) => {
-              const role = getRoleById(roleId);
+              const role = rolesMap[roleId];
               const session = sessions[roleId];
               if (!role || !session) return null;
 
@@ -169,7 +180,7 @@ export default function InterviewsContent() {
             <p className="text-slate-600">
               Workflows covered:{" "}
               <span className="font-semibold text-slate-900">
-                {[...new Set(sortedIds.map((id) => getRoleById(id)?.workflow).filter(Boolean))].join(", ") || "None yet"}
+                {[...new Set(sortedIds.map((id) => rolesMap[id]?.workflow).filter(Boolean))].join(", ") || "None yet"}
               </span>
             </p>
           </div>
