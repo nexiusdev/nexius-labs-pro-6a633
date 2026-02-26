@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
 
   useEffect(() => {
@@ -31,14 +33,20 @@ export default function AuthPage() {
       if (mode === "signup") {
         const { error } = await supabaseBrowser.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage("Sign-up successful. Check your inbox if email verification is enabled, then sign in.");
+        router.push("/");
+        router.refresh();
+        return;
       } else {
         const { error } = await supabaseBrowser.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        setMessage("Signed in. You can now continue with your saved shortlists/interviews.");
+        router.push("/");
+        router.refresh();
+        return;
       }
     } catch (e) {
-      setMessage((e as Error).message || "Authentication failed");
+      const err = e as Error;
+      const fallback = mode === "signin" ? "Sign in failed. Please check your email/password and try again." : "Sign up failed. Please check your details and try again.";
+      setMessage(err?.message ? `${fallback} (${err.message})` : fallback);
     } finally {
       setBusy(false);
     }
