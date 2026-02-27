@@ -7,7 +7,6 @@ import {
   complexityOptions,
   timeToValueOptions,
   outcomeCategoryOptions,
-  systemOptions,
   type FilterState,
   type Role,
 } from "@/data/roles";
@@ -42,6 +41,112 @@ function CustomRoleCTA() {
     </div>
   );
 }
+
+const connectedSystemsByCategory = {
+  ATS: [
+    "Greenhouse",
+    "Lever",
+    "Workable",
+    "SmartRecruiters",
+    "iCIMS",
+    "Ashby",
+    "BambooHR ATS",
+    "Teamtailor",
+    "JazzHR",
+    "Jobvite",
+  ],
+  CRM: [
+    "Salesforce",
+    "HubSpot",
+    "Zoho CRM",
+    "Pipedrive",
+    "Microsoft Dynamics 365",
+    "Freshsales",
+    "Copper",
+    "Monday CRM",
+    "Close",
+    "Insightly",
+  ],
+  ERP: [
+    "SAP S/4HANA",
+    "Oracle NetSuite",
+    "Microsoft Dynamics 365 Business Central",
+    "Odoo",
+    "Acumatica",
+    "Infor CloudSuite",
+    "Epicor",
+    "Sage X3",
+    "SAP Business One",
+    "IFS",
+  ],
+  Finance: [
+    "Xero",
+    "QuickBooks Online",
+    "NetSuite Financials",
+    "Sage Intacct",
+    "Microsoft Dynamics 365 Finance",
+    "Oracle Fusion Cloud Financials",
+    "FreshBooks",
+    "Zoho Books",
+    "MYOB",
+    "Wave",
+  ],
+  HRMS: [
+    "Workday",
+    "BambooHR",
+    "SAP SuccessFactors",
+    "ADP Workforce Now",
+    "UKG Pro",
+    "Rippling",
+    "HiBob",
+    "Gusto",
+    "Paycom",
+    "Darwinbox",
+  ],
+  ITSM: [
+    "ServiceNow",
+    "Jira Service Management",
+    "Freshservice",
+    "ManageEngine ServiceDesk Plus",
+    "Zendesk",
+    "BMC Helix",
+    "SysAid",
+    "Ivanti",
+    "TOPdesk",
+    "SolarWinds Service Desk",
+  ],
+  MAP: [
+    "HubSpot Marketing Hub",
+    "Marketo",
+    "Pardot (Account Engagement)",
+    "Mailchimp",
+    "ActiveCampaign",
+    "Klaviyo",
+    "Braze",
+    "Customer.io",
+    "Iterable",
+    "MoEngage",
+  ],
+  WMS: [
+    "Manhattan WMS",
+    "Oracle WMS Cloud",
+    "SAP EWM",
+    "Blue Yonder WMS",
+    "Infor WMS",
+    "Fishbowl",
+    "Cin7",
+    "ShipHero",
+    "Extensiv 3PL Warehouse Manager",
+    "NetSuite WMS",
+  ],
+} as const;
+
+const systemCategories = Object.keys(connectedSystemsByCategory) as (keyof typeof connectedSystemsByCategory)[];
+const platformToCategory = Object.fromEntries(
+  systemCategories.flatMap((category) =>
+    connectedSystemsByCategory[category].map((platform) => [platform, category])
+  )
+) as Record<string, keyof typeof connectedSystemsByCategory>;
 
 const defaultFilters: FilterState = {
   query: "",
@@ -78,7 +183,12 @@ export default function RoleCatalog() {
         if (filters.governance !== "All" && r.governance !== filters.governance) return false;
         if (filters.complexity !== "All" && r.complexity !== filters.complexity) return false;
         if (filters.timeToValue !== "All" && r.timeToValue !== filters.timeToValue) return false;
-        if (filters.systems.length > 0 && !filters.systems.every((s) => r.systems.includes(s as never))) return false;
+        if (filters.systems.length > 0) {
+          const selectedCategories = Array.from(
+            new Set(filters.systems.map((platform) => platformToCategory[platform]).filter(Boolean))
+          );
+          if (!selectedCategories.every((category) => r.systems.includes(category as never))) return false;
+        }
 
         const q = filters.query.trim().toLowerCase();
         if (!q) return true;
@@ -107,14 +217,16 @@ export default function RoleCatalog() {
   const update = (patch: Partial<FilterState>) =>
     setFilters((prev) => ({ ...prev, ...patch }));
 
-  const toggleSystem = (sys: string) => {
+  const toggleConnectedSystem = (platform: string) => {
     setFilters((prev) => ({
       ...prev,
-      systems: prev.systems.includes(sys)
-        ? prev.systems.filter((s) => s !== sys)
-        : [...prev.systems, sys],
+      systems: prev.systems.includes(platform)
+        ? prev.systems.filter((s) => s !== platform)
+        : [...prev.systems, platform],
     }));
   };
+
+  const [connectedSystemSearch, setConnectedSystemSearch] = useState<Record<string, string>>({});
 
   const allWorkflows = ["All", ...workflows];
 
@@ -225,25 +337,56 @@ export default function RoleCatalog() {
         </div>
       </div>
 
-      {/* Systems (multi-select) */}
+      {/* Connected Systems (multi-select) */}
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-5 mt-4">
         <p className="text-sm font-medium text-slate-500 mb-3">
-          Systems <span className="text-slate-400">(multi-select)</span>
+          Connected Systems <span className="text-slate-400">(multi-select)</span>
         </p>
-        <div className="flex flex-wrap gap-2">
-          {systemOptions.map((sys) => (
-            <button
-              key={sys}
-              onClick={() => toggleSystem(sys)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filters.systems.includes(sys)
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-slate-400"
-              }`}
-            >
-              {sys}
-            </button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {systemCategories.map((category) => {
+            const options = connectedSystemsByCategory[category];
+            const query = (connectedSystemSearch[category] ?? "").toLowerCase();
+            const filteredOptions = options.filter((platform) =>
+              platform.toLowerCase().includes(query)
+            );
+            const selectedCount = options.filter((platform) => filters.systems.includes(platform)).length;
+
+            return (
+              <details key={category} className="rounded-lg border border-slate-200 bg-white">
+                <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-slate-700 flex items-center justify-between">
+                  <span>{category}</span>
+                  <span className="text-xs text-slate-400">{selectedCount} selected</span>
+                </summary>
+                <div className="border-t border-slate-100 p-2.5 space-y-2">
+                  <input
+                    type="text"
+                    value={connectedSystemSearch[category] ?? ""}
+                    onChange={(e) =>
+                      setConnectedSystemSearch((prev) => ({ ...prev, [category]: e.target.value }))
+                    }
+                    placeholder={`Search ${category} systems`}
+                    className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none focus:border-blue-500"
+                  />
+                  <div className="max-h-52 overflow-auto space-y-1 pr-1">
+                    {filteredOptions.map((platform) => (
+                      <label key={platform} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.systems.includes(platform)}
+                          onChange={() => toggleConnectedSystem(platform)}
+                          className="h-4 w-4 rounded border-slate-300"
+                        />
+                        <span>{platform}</span>
+                      </label>
+                    ))}
+                    {filteredOptions.length === 0 ? (
+                      <p className="text-xs text-slate-400 py-1">No systems found</p>
+                    ) : null}
+                  </div>
+                </div>
+              </details>
+            );
+          })}
         </div>
       </div>
 
