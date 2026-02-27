@@ -258,7 +258,7 @@ export default function RoleCatalog() {
           {/* Search */}
           <input
             type="text"
-            placeholder="Search role, function, skill"
+            placeholder="Search roles, functions, or skills"
             value={filters.query}
             onChange={(e) => update({ query: e.target.value })}
             className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm"
@@ -339,9 +339,10 @@ export default function RoleCatalog() {
 
       {/* Connected Systems (multi-select) */}
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-5 mt-4">
-        <p className="text-sm font-medium text-slate-500 mb-3">
+        <p className="text-sm font-medium text-slate-500 mb-1">
           Connected Systems <span className="text-slate-400">(multi-select)</span>
         </p>
+        <p className="text-xs text-slate-400 mb-3">Select the platforms in your current stack. You can choose multiple systems across categories.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {systemCategories.map((category) => {
             const options = connectedSystemsByCategory[category];
@@ -355,7 +356,7 @@ export default function RoleCatalog() {
               <details key={category} className="rounded-lg border border-slate-200 bg-white">
                 <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-slate-700 flex items-center justify-between">
                   <span>{category}</span>
-                  <span className="text-xs text-slate-400">{selectedCount} selected</span>
+                  <span className="text-xs text-slate-400">{selectedCount} platform{selectedCount === 1 ? "" : "s"}</span>
                 </summary>
                 <div className="border-t border-slate-100 p-2.5 space-y-2">
                   <input
@@ -364,7 +365,7 @@ export default function RoleCatalog() {
                     onChange={(e) =>
                       setConnectedSystemSearch((prev) => ({ ...prev, [category]: e.target.value }))
                     }
-                    placeholder={`Search ${category} systems`}
+                    placeholder={`Search ${category} platforms`}
                     className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none focus:border-blue-500"
                   />
                   <div className="max-h-52 overflow-auto space-y-1 pr-1">
