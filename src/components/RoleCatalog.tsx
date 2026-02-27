@@ -215,6 +215,7 @@ export default function RoleCatalog() {
   const [openSystemCategory, setOpenSystemCategory] = useState<string | null>(null);
 
   const allWorkflows = ["All", ...workflows];
+  const showConnectedSystems = false;
 
   return (
     <div className="mt-8">
@@ -324,6 +325,7 @@ export default function RoleCatalog() {
       </div>
 
       {/* Connected Systems (multi-select) */}
+      {showConnectedSystems ? (
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 md:p-5 mt-4">
         <div className="flex items-start justify-between gap-3 mb-1">
           <p className="text-sm font-medium text-slate-500">
@@ -402,6 +404,7 @@ export default function RoleCatalog() {
           })}
         </div>
       </div>
+      ) : null}
 
       {/* Results count */}
       <p className="text-sm text-blue-600 font-medium mt-6">

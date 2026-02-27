@@ -5,7 +5,6 @@ import ExpertCrafted from "@/components/ExpertCrafted";
 import DeploymentSteps from "@/components/DeploymentSteps";
 import ScalePath from "@/components/ScalePath";
 import TrustSafety from "@/components/TrustSafety";
-import Integrations from "@/components/Integrations";
 import StatsCounter from "@/components/StatsCounter";
 import FAQ from "@/components/FAQ";
 import CTA from "@/components/CTA";
@@ -42,7 +41,6 @@ export default function HowItWorksPage() {
       <DeploymentSteps />
       <ScalePath />
       <TrustSafety />
-      <Integrations />
       <StatsCounter />
       <FAQ />
       <CTA />
