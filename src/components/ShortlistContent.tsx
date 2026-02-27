@@ -7,6 +7,7 @@ import { useShortlist } from "@/context/ShortlistContext";
 import { workflowColors, type Role, type System } from "@/data/roles";
 import type { Expert } from "@/data/experts";
 import RoleCard from "@/components/RoleCard";
+import { buildPaymentLink, formatSgd, getRolePricing } from "@/lib/pricing";
 
 export default function ShortlistContent() {
   const { ids, remove } = useShortlist();
@@ -25,6 +26,22 @@ export default function ShortlistContent() {
 
   const roleMap = useMemo(() => Object.fromEntries(allRoles.map((r) => [r.id, r])), [allRoles]);
   const shortlistedRoles = ids.map((id) => roleMap[id]).filter(Boolean);
+
+  const pricingTotals = shortlistedRoles.reduce(
+    (acc, role) => {
+      const p = getRolePricing(role as Role);
+      acc.monthly += p.monthlySgd;
+      acc.setup += p.setupSgd;
+      return acc;
+    },
+    { monthly: 0, setup: 0 }
+  );
+
+  const paymentLink = buildPaymentLink({
+    roleIds: shortlistedRoles.map((r) => r.id),
+    totalMonthlySgd: pricingTotals.monthly,
+    totalSetupSgd: pricingTotals.setup,
+  });
 
   const totalFunctions = shortlistedRoles.reduce((sum, r) => sum + (r?.functionCount ?? 0), 0);
   const totalSkills = shortlistedRoles.reduce(
@@ -112,6 +129,9 @@ export default function ShortlistContent() {
                       {role.title}
                     </Link>
                     <p className="text-sm text-slate-500 mt-1">{role.description}</p>
+                    <p className="text-sm font-medium text-slate-800 mt-2">
+                      {formatSgd(getRolePricing(role).monthlySgd)}/month + {formatSgd(getRolePricing(role).setupSgd)} setup
+                    </p>
                     <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-400">
                       <span>{role.functionCount} functions</span>
                       <span>{role.functions.reduce((s, f) => s + f.skills.length, 0)} skills</span>
@@ -140,6 +160,12 @@ export default function ShortlistContent() {
           <div className="mt-4 space-y-3 text-sm">
             <p className="text-slate-600">
               Total roles: <span className="font-semibold text-slate-900">{n}</span>
+            </p>
+            <p className="text-slate-600">
+              Monthly total: <span className="font-semibold text-slate-900">{formatSgd(pricingTotals.monthly)}</span>
+            </p>
+            <p className="text-slate-600">
+              One-time setup: <span className="font-semibold text-slate-900">{formatSgd(pricingTotals.setup)}</span>
             </p>
             <p className="text-slate-600">
               Workflows:{" "}
@@ -195,10 +221,10 @@ export default function ShortlistContent() {
               Book Free Consultation
             </Link>
             <Link
-              href="/#contact"
+              href={paymentLink}
               className="w-full inline-flex items-center justify-center border-2 border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
             >
-              Request Quote
+              Proceed to Payment
             </Link>
           </div>
         </div>

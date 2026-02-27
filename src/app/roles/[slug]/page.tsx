@@ -8,6 +8,7 @@ import Navigation from "@/components/Navigation";
 import RoleCard from "@/components/RoleCard";
 import ShortlistButton from "@/components/ShortlistButton";
 import Footer from "@/components/Footer";
+import { buildPaymentLink, formatSgd, getRolePricing } from "@/lib/pricing";
 
 export async function generateStaticParams() {
   const roles = await getAllRolesDb();
@@ -38,6 +39,13 @@ export default async function RoleDetailPage({
   if (!role) notFound();
 
   const colors = workflowColors[role.workflow];
+  const pricing = getRolePricing(role);
+  const singleRolePaymentLink = buildPaymentLink({
+    roleIds: [role.id],
+    totalMonthlySgd: pricing.monthlySgd,
+    totalSetupSgd: pricing.setupSgd,
+  });
+
   const related = (await getAllRolesDb())
     .filter((r) => r.workflow === role.workflow && r.id !== role.id)
     .slice(0, 3);
@@ -148,9 +156,11 @@ export default async function RoleDetailPage({
             <div className="mt-12 lg:mt-0 space-y-6">
               {/* Action buttons card */}
               <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
-                <p className="text-sm text-slate-500 mb-4">
-                  Time-to-value: 2–4 weeks
+                <p className="text-sm text-slate-500 mb-1">
+                  Time-to-value: {role.timeToValue}
                 </p>
+                <p className="text-lg font-semibold text-slate-900">{formatSgd(pricing.monthlySgd)}/month</p>
+                <p className="text-xs text-slate-500 mb-4">+ {formatSgd(pricing.setupSgd)} one-time setup</p>
                 <div className="space-y-3">
                   <Link
                     href={`/interview/${role.id}`}
@@ -168,11 +178,11 @@ export default async function RoleDetailPage({
                     Book Free Consultation
                   </Link>
                   <Link
-                    href="/#contact"
+                    href={singleRolePaymentLink}
                     className="w-full inline-flex items-center justify-center gap-2 border-2 border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-800 px-5 py-3 rounded-lg font-semibold transition-colors text-sm uppercase tracking-wide"
                   >
                     <FileText className="w-4 h-4" />
-                    Request Quote
+                    Proceed to Payment
                   </Link>
                 </div>
               </div>

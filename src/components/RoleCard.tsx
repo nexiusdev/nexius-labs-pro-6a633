@@ -5,11 +5,13 @@ import { Eye, Star, Mic } from "lucide-react";
 import { workflowColors, type Role } from "@/data/roles";
 import type { Expert } from "@/data/experts";
 import { useShortlist } from "@/context/ShortlistContext";
+import { formatSgd, getRolePricing } from "@/lib/pricing";
 
 export default function RoleCard({ role, expert }: { role: Role; expert?: Expert }) {
   const colors = workflowColors[role.workflow];
   const { toggle, has } = useShortlist();
   const isShortlisted = has(role.id);
+  const pricing = getRolePricing(role);
 
   return (
     <div
@@ -52,6 +54,12 @@ export default function RoleCard({ role, expert }: { role: Role; expert?: Expert
               {tag}
             </span>
           ))}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+          <p className="text-[11px] uppercase tracking-wide text-slate-500">From</p>
+          <p className="text-sm font-semibold text-slate-900">{formatSgd(pricing.monthlySgd)}/month</p>
+          <p className="text-[11px] text-slate-500">+ {formatSgd(pricing.setupSgd)} one-time setup</p>
         </div>
 
         {/* Function count + Created by */}
