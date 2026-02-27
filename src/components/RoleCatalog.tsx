@@ -339,7 +339,7 @@ export default function RoleCatalog() {
       </div>
 
       {/* Connected Systems (multi-select) */}
-      <div className="bg-slate-50 rounded-xl border border-slate-100 p-5 mt-4">
+      <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 md:p-5 mt-4">
         <div className="flex items-start justify-between gap-3 mb-1">
           <p className="text-sm font-medium text-slate-500">
             Connected Systems <span className="text-slate-400">(multi-select)</span>
@@ -355,7 +355,7 @@ export default function RoleCatalog() {
           ) : null}
         </div>
         <p className="text-xs text-slate-400 mb-3">Select the platforms in your current stack. You can choose multiple systems across categories.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
           {systemCategories.map((category) => {
             const options = connectedSystemsByCategory[category];
             const query = (connectedSystemSearch[category] ?? "").toLowerCase();
@@ -371,7 +371,7 @@ export default function RoleCatalog() {
                 <button
                   type="button"
                   onClick={() => setOpenSystemCategory(isOpen ? null : category)}
-                  className={`w-full px-3 py-3 text-sm font-medium flex items-center justify-between transition-colors ${
+                  className={`w-full px-3 py-2.5 md:py-2 text-sm font-medium flex items-center justify-between transition-colors ${
                     isOpen ? "bg-slate-50 text-slate-900" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
@@ -384,7 +384,7 @@ export default function RoleCatalog() {
                   </span>
                 </button>
                 {isOpen ? (
-                  <div className="border-t border-slate-100 p-2.5 space-y-2">
+                  <div className="border-t border-slate-100 p-2 md:p-2.5 space-y-2">
                     <input
                       type="text"
                       value={connectedSystemSearch[category] ?? ""}
@@ -394,7 +394,7 @@ export default function RoleCatalog() {
                       placeholder={`Search ${category} platforms`}
                       className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none focus:border-blue-500"
                     />
-                    <div className="max-h-48 overflow-auto space-y-1 pr-1">
+                    <div className="max-h-44 md:max-h-40 overflow-auto space-y-1 pr-1">
                       {filteredOptions.map((platform) => (
                         <label key={platform} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer py-1">
                           <input
