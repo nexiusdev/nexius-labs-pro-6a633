@@ -43,6 +43,7 @@ function CustomRoleCTA() {
 }
 
 const connectedSystemsByCategory = {
+  // Platforms with practical integration routes available via API, MCP connector, or CLI tooling.
   ATS: [
     "Greenhouse",
     "Lever",
@@ -50,10 +51,8 @@ const connectedSystemsByCategory = {
     "SmartRecruiters",
     "iCIMS",
     "Ashby",
-    "BambooHR ATS",
-    "Teamtailor",
-    "JazzHR",
     "Jobvite",
+    "Teamtailor",
   ],
   CRM: [
     "Salesforce",
@@ -62,9 +61,7 @@ const connectedSystemsByCategory = {
     "Pipedrive",
     "Microsoft Dynamics 365",
     "Freshsales",
-    "Copper",
     "Monday CRM",
-    "Close",
     "Insightly",
   ],
   ERP: [
@@ -75,9 +72,7 @@ const connectedSystemsByCategory = {
     "Acumatica",
     "Infor CloudSuite",
     "Epicor",
-    "Sage X3",
     "SAP Business One",
-    "IFS",
   ],
   Finance: [
     "Xero",
@@ -88,8 +83,6 @@ const connectedSystemsByCategory = {
     "Oracle Fusion Cloud Financials",
     "FreshBooks",
     "Zoho Books",
-    "MYOB",
-    "Wave",
   ],
   HRMS: [
     "Workday",
@@ -100,8 +93,6 @@ const connectedSystemsByCategory = {
     "Rippling",
     "HiBob",
     "Gusto",
-    "Paycom",
-    "Darwinbox",
   ],
   ITSM: [
     "ServiceNow",
@@ -110,10 +101,8 @@ const connectedSystemsByCategory = {
     "ManageEngine ServiceDesk Plus",
     "Zendesk",
     "BMC Helix",
-    "SysAid",
-    "Ivanti",
     "TOPdesk",
-    "SolarWinds Service Desk",
+    "Ivanti",
   ],
   MAP: [
     "HubSpot Marketing Hub",
@@ -124,8 +113,6 @@ const connectedSystemsByCategory = {
     "Klaviyo",
     "Braze",
     "Customer.io",
-    "Iterable",
-    "MoEngage",
   ],
   WMS: [
     "Manhattan WMS",
@@ -133,10 +120,8 @@ const connectedSystemsByCategory = {
     "SAP EWM",
     "Blue Yonder WMS",
     "Infor WMS",
-    "Fishbowl",
     "Cin7",
     "ShipHero",
-    "Extensiv 3PL Warehouse Manager",
     "NetSuite WMS",
   ],
 } as const;
@@ -354,7 +339,7 @@ export default function RoleCatalog() {
             </button>
           ) : null}
         </div>
-        <p className="text-xs text-slate-400 mb-3">Select the platforms in your current stack. You can choose multiple systems across categories.</p>
+        <p className="text-xs text-slate-400 mb-3">Select the platforms in your stack. Only systems with API, MCP, or CLI integration routes are listed.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
           {systemCategories.map((category) => {
             const options = connectedSystemsByCategory[category];
