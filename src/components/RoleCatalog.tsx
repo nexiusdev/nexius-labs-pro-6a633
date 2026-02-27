@@ -12,7 +12,7 @@ import {
 } from "@/data/roles";
 import type { Expert } from "@/data/experts";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
 import RoleCard from "@/components/RoleCard";
 
@@ -227,6 +227,7 @@ export default function RoleCatalog() {
   };
 
   const [connectedSystemSearch, setConnectedSystemSearch] = useState<Record<string, string>>({});
+  const [openSystemCategory, setOpenSystemCategory] = useState<string | null>(null);
 
   const allWorkflows = ["All", ...workflows];
 
@@ -339,9 +340,20 @@ export default function RoleCatalog() {
 
       {/* Connected Systems (multi-select) */}
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-5 mt-4">
-        <p className="text-sm font-medium text-slate-500 mb-1">
-          Connected Systems <span className="text-slate-400">(multi-select)</span>
-        </p>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <p className="text-sm font-medium text-slate-500">
+            Connected Systems <span className="text-slate-400">(multi-select)</span>
+          </p>
+          {filters.systems.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => update({ systems: [] })}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear all
+            </button>
+          ) : null}
+        </div>
         <p className="text-xs text-slate-400 mb-3">Select the platforms in your current stack. You can choose multiple systems across categories.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {systemCategories.map((category) => {
@@ -352,40 +364,55 @@ export default function RoleCatalog() {
             );
             const selectedCount = options.filter((platform) => filters.systems.includes(platform)).length;
 
+            const isOpen = openSystemCategory === category;
+
             return (
-              <details key={category} className="rounded-lg border border-slate-200 bg-white">
-                <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-slate-700 flex items-center justify-between">
+              <div key={category} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenSystemCategory(isOpen ? null : category)}
+                  className={`w-full px-3 py-3 text-sm font-medium flex items-center justify-between transition-colors ${
+                    isOpen ? "bg-slate-50 text-slate-900" : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
                   <span>{category}</span>
-                  <span className="text-xs text-slate-400">{selectedCount} platform{selectedCount === 1 ? "" : "s"}</span>
-                </summary>
-                <div className="border-t border-slate-100 p-2.5 space-y-2">
-                  <input
-                    type="text"
-                    value={connectedSystemSearch[category] ?? ""}
-                    onChange={(e) =>
-                      setConnectedSystemSearch((prev) => ({ ...prev, [category]: e.target.value }))
-                    }
-                    placeholder={`Search ${category} platforms`}
-                    className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none focus:border-blue-500"
-                  />
-                  <div className="max-h-52 overflow-auto space-y-1 pr-1">
-                    {filteredOptions.map((platform) => (
-                      <label key={platform} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={filters.systems.includes(platform)}
-                          onChange={() => toggleConnectedSystem(platform)}
-                          className="h-4 w-4 rounded border-slate-300"
-                        />
-                        <span>{platform}</span>
-                      </label>
-                    ))}
-                    {filteredOptions.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-1">No systems found</p>
-                    ) : null}
+                  <span className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${selectedCount > 0 ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                      {selectedCount} platform{selectedCount === 1 ? "" : "s"}
+                    </span>
+                    {isOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                  </span>
+                </button>
+                {isOpen ? (
+                  <div className="border-t border-slate-100 p-2.5 space-y-2">
+                    <input
+                      type="text"
+                      value={connectedSystemSearch[category] ?? ""}
+                      onChange={(e) =>
+                        setConnectedSystemSearch((prev) => ({ ...prev, [category]: e.target.value }))
+                      }
+                      placeholder={`Search ${category} platforms`}
+                      className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none focus:border-blue-500"
+                    />
+                    <div className="max-h-48 overflow-auto space-y-1 pr-1">
+                      {filteredOptions.map((platform) => (
+                        <label key={platform} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer py-1">
+                          <input
+                            type="checkbox"
+                            checked={filters.systems.includes(platform)}
+                            onChange={() => toggleConnectedSystem(platform)}
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          <span>{platform}</span>
+                        </label>
+                      ))}
+                      {filteredOptions.length === 0 ? (
+                        <p className="text-xs text-slate-400 py-1">No platforms found</p>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </details>
+                ) : null}
+              </div>
             );
           })}
         </div>
