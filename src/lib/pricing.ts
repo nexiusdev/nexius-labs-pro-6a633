@@ -50,15 +50,17 @@ export function formatSgd(amount: number): string {
 export function buildPaymentLink(payload: {
   roleIds: string[];
   totalMonthlySgd: number;
-  }): string {
-  const base = process.env.NEXT_PUBLIC_PAYMENT_GATEWAY_URL || "/#contact";
-  const isAbsolute = /^https?:\/\//i.test(base);
-  if (!isAbsolute) return base;
+}): string {
+  const base = process.env.NEXT_PUBLIC_PAYMENT_GATEWAY_URL || "/payment";
 
-  const url = new URL(base);
-  url.searchParams.set("roles", payload.roleIds.join(","));
-  url.searchParams.set("currency", "SGD");
-  url.searchParams.set("monthly", String(payload.totalMonthlySgd));
-  return url.toString();
+  if (/^https?:\/\//i.test(base)) {
+    const url = new URL(base);
+    url.searchParams.set("roles", payload.roleIds.join(","));
+    url.searchParams.set("currency", "SGD");
+    url.searchParams.set("monthly", String(payload.totalMonthlySgd));
+    return url.toString();
+  }
+
+  const separator = base.includes("?") ? "&" : "?";
+  return `${base}${separator}roles=${encodeURIComponent(payload.roleIds.join(","))}&currency=SGD&monthly=${payload.totalMonthlySgd}`;
 }
-
