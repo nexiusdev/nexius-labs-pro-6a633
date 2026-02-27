@@ -59,7 +59,6 @@ export default function RoleCard({ role, expert }: { role: Role; expert?: Expert
         <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
           <p className="text-[11px] uppercase tracking-wide text-slate-500">From</p>
           <p className="text-sm font-semibold text-slate-900">{formatSgd(pricing.monthlySgd)}/month</p>
-          <p className="text-[11px] text-slate-500">+ {formatSgd(pricing.setupSgd)} one-time setup</p>
         </div>
 
         {/* Function count + Created by */}

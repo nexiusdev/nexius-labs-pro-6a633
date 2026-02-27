@@ -31,16 +31,14 @@ export default function ShortlistContent() {
     (acc, role) => {
       const p = getRolePricing(role as Role);
       acc.monthly += p.monthlySgd;
-      acc.setup += p.setupSgd;
-      return acc;
+            return acc;
     },
-    { monthly: 0, setup: 0 }
+    { monthly: 0 }
   );
 
   const paymentLink = buildPaymentLink({
     roleIds: shortlistedRoles.map((r) => r.id),
     totalMonthlySgd: pricingTotals.monthly,
-    totalSetupSgd: pricingTotals.setup,
   });
 
   const totalFunctions = shortlistedRoles.reduce((sum, r) => sum + (r?.functionCount ?? 0), 0);
@@ -130,7 +128,7 @@ export default function ShortlistContent() {
                     </Link>
                     <p className="text-sm text-slate-500 mt-1">{role.description}</p>
                     <p className="text-sm font-medium text-slate-800 mt-2">
-                      {formatSgd(getRolePricing(role).monthlySgd)}/month + {formatSgd(getRolePricing(role).setupSgd)} setup
+                      {formatSgd(getRolePricing(role).monthlySgd)}/month 
                     </p>
                     <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-400">
                       <span>{role.functionCount} functions</span>
@@ -163,9 +161,6 @@ export default function ShortlistContent() {
             </p>
             <p className="text-slate-600">
               Monthly total: <span className="font-semibold text-slate-900">{formatSgd(pricingTotals.monthly)}</span>
-            </p>
-            <p className="text-slate-600">
-              One-time setup: <span className="font-semibold text-slate-900">{formatSgd(pricingTotals.setup)}</span>
             </p>
             <p className="text-slate-600">
               Workflows:{" "}
@@ -255,3 +250,5 @@ export default function ShortlistContent() {
     </>
   );
 }
+
+

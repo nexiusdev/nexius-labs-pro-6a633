@@ -43,7 +43,6 @@ export default async function RoleDetailPage({
   const singleRolePaymentLink = buildPaymentLink({
     roleIds: [role.id],
     totalMonthlySgd: pricing.monthlySgd,
-    totalSetupSgd: pricing.setupSgd,
   });
 
   const related = (await getAllRolesDb())
@@ -160,7 +159,6 @@ export default async function RoleDetailPage({
                   Time-to-value: {role.timeToValue}
                 </p>
                 <p className="text-lg font-semibold text-slate-900">{formatSgd(pricing.monthlySgd)}/month</p>
-                <p className="text-xs text-slate-500 mb-4">+ {formatSgd(pricing.setupSgd)} one-time setup</p>
                 <div className="space-y-3">
                   <Link
                     href={`/interview/${role.id}`}
@@ -258,3 +256,5 @@ export default async function RoleDetailPage({
     </>
   );
 }
+
+
