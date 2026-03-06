@@ -66,6 +66,15 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
               >
                 Proceed to Secure Payment (Coming Soon)
               </button>
+
+              {/* Temporary: since this is a dummy payment page, provide a manual success step. */}
+              <Link
+                href={`/payment/success?roles=${encodeURIComponent(roleIds.join(","))}&currency=${encodeURIComponent(currency)}&monthly=${monthly}`}
+                className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg text-sm font-semibold"
+              >
+                I’ve completed payment
+              </Link>
+
               <Link
                 href="/shortlist"
                 className="inline-flex items-center justify-center border-2 border-slate-200 text-slate-700 px-5 py-3 rounded-lg text-sm font-semibold hover:border-slate-300"
