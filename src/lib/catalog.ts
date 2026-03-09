@@ -11,7 +11,15 @@ const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 if (!supabaseUrl) throw new Error("Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL");
 if (!supabaseAnon) throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
-const db = createClient(supabaseUrl, supabaseAnon).schema("nexius_os");
+const db = createClient(supabaseUrl, supabaseAnon, {
+  // Be explicit: in some runtimes the implicit headers can get lost.
+  global: {
+    headers: {
+      apikey: supabaseAnon,
+      Authorization: `Bearer ${supabaseAnon}`,
+    },
+  },
+}).schema("nexius_os");
 
 export async function getAllRolesDb(): Promise<Role[]> {
   const [
