@@ -1,10 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const DEFAULT_SUPABASE_URL = "https://cqqkrheyjtdysclkeuxn.supabase.co";
-
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Intentionally no fallback URL: prevent accidentally pointing at an old/incorrect project.
 if (!supabaseUrl) throw new Error("Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL");
 if (!serviceRoleKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
 
