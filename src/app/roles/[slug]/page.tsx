@@ -11,8 +11,12 @@ import Footer from "@/components/Footer";
 import { buildPaymentLink, formatSgd, getRolePricing } from "@/lib/pricing";
 
 export async function generateStaticParams() {
-  const roles = await getAllRolesDb();
-  return roles.map((role) => ({ slug: role.id }));
+  try {
+    const roles = await getAllRolesDb();
+    return roles.map((role) => ({ slug: role.id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

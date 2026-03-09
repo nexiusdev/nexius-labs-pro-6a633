@@ -9,8 +9,15 @@ import Footer from "@/components/Footer";
 import InterviewChat from "@/components/InterviewChat";
 
 export async function generateStaticParams() {
-  const roles = await getAllRolesDb();
-  return roles.map((role) => ({ slug: role.id }));
+  // Netlify builds sometimes run without working secret env vars for Supabase.
+  // If Supabase credentials are missing/invalid at build time, skip SSG and let
+  // pages resolve at runtime instead of failing the whole deploy.
+  try {
+    const roles = await getAllRolesDb();
+    return roles.map((role) => ({ slug: role.id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

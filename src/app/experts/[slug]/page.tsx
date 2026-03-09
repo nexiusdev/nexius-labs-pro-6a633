@@ -8,8 +8,12 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 export async function generateStaticParams() {
-  const experts = await getAllExpertsDb();
-  return experts.map((expert) => ({ slug: expert.id }));
+  try {
+    const experts = await getAllExpertsDb();
+    return experts.map((expert) => ({ slug: expert.id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
