@@ -1,8 +1,17 @@
 import type { Role, RoleFunction, RoleOutcome } from "@/data/roles";
 import type { Expert, ExperienceItem, EducationItem } from "@/data/experts";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { createClient } from "@supabase/supabase-js";
 
-const db = supabaseAdmin.schema("nexius_os");
+// Public read-only Supabase client for server-side catalog reads.
+// We intentionally use the ANON key so builds don't depend on the service role key,
+// and because the catalog is meant to be publicly readable.
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl) throw new Error("Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL");
+if (!supabaseAnon) throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY");
+
+const db = createClient(supabaseUrl, supabaseAnon).schema("nexius_os");
 
 export async function getAllRolesDb(): Promise<Role[]> {
   const [
