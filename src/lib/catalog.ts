@@ -5,15 +5,25 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 const db = supabaseAdmin.schema("nexius_os");
 
 export async function getAllRolesDb(): Promise<Role[]> {
-  const [{ data: roles }, { data: functions }, { data: outcomes }, { data: tagMap }, { data: systemMap }, { data: rfSkills }] =
-    await Promise.all([
-      db.from("roles").select("*").eq("is_active", true).order("title", { ascending: true }),
-      db.from("role_functions").select("id,role_id,name,automation_percent,sort_order").order("sort_order", { ascending: true }),
-      db.from("role_outcomes").select("role_id,value,label,description,sort_order").order("sort_order", { ascending: true }),
-      db.from("role_tag_map").select("role_id,tags(name)"),
-      db.from("role_system_map").select("role_id,systems(code)"),
-      db.from("role_function_skills").select("role_function_id,sort_order,skills(name)").order("sort_order", { ascending: true }),
-    ]);
+  const [
+    { data: roles, error: rolesErr },
+    { data: functions, error: fnErr },
+    { data: outcomes, error: outErr },
+    { data: tagMap, error: tagErr },
+    { data: systemMap, error: sysErr },
+    { data: rfSkills, error: rfErr },
+  ] = await Promise.all([
+    db.from("roles").select("*").eq("is_active", true).order("title", { ascending: true }),
+    db.from("role_functions").select("id,role_id,name,automation_percent,sort_order").order("sort_order", { ascending: true }),
+    db.from("role_outcomes").select("role_id,value,label,description,sort_order").order("sort_order", { ascending: true }),
+    db.from("role_tag_map").select("role_id,tags(name)"),
+    db.from("role_system_map").select("role_id,systems(code)"),
+    db.from("role_function_skills").select("role_function_id,sort_order,skills(name)").order("sort_order", { ascending: true }),
+  ]);
+
+  const err = rolesErr || fnErr || outErr || tagErr || sysErr || rfErr;
+  if (err) throw new Error(`Supabase catalog query failed: ${err.message}`);
+
 
   const skillMap = new Map<string, string[]>();
   for (const row of rfSkills ?? []) {
