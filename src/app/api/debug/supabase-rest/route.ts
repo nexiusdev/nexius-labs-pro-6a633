@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-  const anon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
-  const service = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  const clean = (v: string) => v.replace(/^["']|["']$/g, "").replace(/[\s\r\n]+/g, "");
+  const anon = clean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
+  const service = clean(process.env.SUPABASE_SERVICE_ROLE_KEY || "");
 
   if (!url) return NextResponse.json({ error: "Missing SUPABASE_URL" }, { status: 500 });
   if (!anon) return NextResponse.json({ error: "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY" }, { status: 500 });

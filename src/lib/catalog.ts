@@ -5,8 +5,14 @@ import { createClient } from "@supabase/supabase-js";
 // Public read-only Supabase client for server-side catalog reads.
 // We intentionally use the ANON key so builds don't depend on the service role key,
 // and because the catalog is meant to be publicly readable.
+function cleanEnv(v: string) {
+  // Netlify secret values sometimes include hidden newlines or quotes.
+  // JWTs must not contain any whitespace.
+  return v.replace(/^["']|["']$/g, "").replace(/[\s\r\n]+/g, "");
+}
+
 const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-const supabaseAnon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+const supabaseAnon = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
 
 if (!supabaseUrl) throw new Error("Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL");
 if (!supabaseAnon) throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY");
