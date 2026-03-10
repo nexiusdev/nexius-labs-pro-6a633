@@ -30,22 +30,27 @@ export default function AuthPage() {
     setBusy(true);
     setMessage("");
     try {
+      const next = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") : null;
+      const nextPath = next && next.startsWith("/") ? next : "/";
+
       if (mode === "signup") {
         const { error } = await supabaseBrowser.auth.signUp({ email, password });
         if (error) throw error;
-        router.push("/");
+        router.push(nextPath);
         router.refresh();
         return;
       } else {
         const { error } = await supabaseBrowser.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push("/");
+        router.push(nextPath);
         router.refresh();
         return;
       }
     } catch (e) {
       const err = e as Error;
-      const fallback = mode === "signin" ? "Sign in failed. Please check your email/password and try again." : "Sign up failed. Please check your details and try again.";
+      const fallback = mode === "signin"
+        ? "Sign in failed. Please check your email/password and try again."
+        : "Sign up failed. Please check your details and try again.";
       setMessage(err?.message ? `${fallback} (${err.message})` : fallback);
     } finally {
       setBusy(false);
@@ -55,7 +60,7 @@ export default function AuthPage() {
   return (
     <>
       <Navigation />
-      <main className="min-h-screen bg-slate-50 pt-28 pb-16">
+      <main className="min-h-screen bg-white pt-28 pb-16">
         <div className="container-wide max-w-xl">
           <div className="bg-white border border-slate-200 rounded-xl p-6">
             <h1 className="text-2xl font-bold text-slate-900">{mode === "signup" ? "Create account" : "Sign in"}</h1>

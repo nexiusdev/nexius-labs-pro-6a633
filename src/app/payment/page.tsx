@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import AirwallexSubscribeButton from "@/components/AirwallexSubscribeButton";
 import { formatSgd } from "@/lib/pricing";
 
 type PaymentPageProps = {
@@ -28,15 +29,13 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
   return (
     <>
       <Navigation />
-      <main className="bg-slate-50 min-h-screen pt-28 pb-16">
+      <main className="bg-white min-h-screen pt-28 pb-16">
         <div className="container-wide max-w-3xl">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Payment (Dummy)</p>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mt-2">Checkout Summary</h1>
             <p className="text-slate-500 mt-2">
-              This is a temporary payment page. You can replace it later by setting
-              <code className="mx-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">NEXT_PUBLIC_PAYMENT_GATEWAY_URL</code>
-              to your production payment gateway URL.
+              Set up your monthly subscription via Airwallex. Billing starts immediately.
             </p>
 
             <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
@@ -58,22 +57,8 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
               </div>
             ) : null}
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center bg-slate-900 text-white px-5 py-3 rounded-lg text-sm font-semibold opacity-70 cursor-not-allowed"
-                disabled
-              >
-                Proceed to Secure Payment (Coming Soon)
-              </button>
-
-              {/* Temporary: since this is a dummy payment page, provide a manual success step. */}
-              <Link
-                href={`/payment/success?roles=${encodeURIComponent(roleIds.join(","))}&currency=${encodeURIComponent(currency)}&monthly=${monthly}`}
-                className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg text-sm font-semibold"
-              >
-                I’ve completed payment
-              </Link>
+            <div className="mt-8 flex flex-col gap-3">
+              <AirwallexSubscribeButton roleIds={roleIds} />
 
               <Link
                 href="/shortlist"

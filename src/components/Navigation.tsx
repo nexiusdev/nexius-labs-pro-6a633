@@ -33,7 +33,7 @@ export default function Navigation() {
     setMobileOpen(false);
   }, [pathname]);
 
-  const forceSolid = pathname === "/auth";
+  const forceSolid = pathname === "/auth" || pathname.startsWith("/payment");
 
   return (
     <nav
