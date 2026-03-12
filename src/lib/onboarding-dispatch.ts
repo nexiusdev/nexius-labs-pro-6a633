@@ -11,8 +11,8 @@ export type AssignedBot = {
 };
 
 function requiredOnboardingEnv() {
-  const url = (process.env.VPS_B_ONBOARDING_URL || "").trim();
-  const token = (process.env.VPS_B_ONBOARDING_TOKEN || "").trim();
+  const url = (process.env.NEXIUS_CONTROL_ONBOARDING_URL || "").trim();
+  const token = (process.env.NEXIUS_CONTROL_ONBOARDING_TOKEN || "").trim();
   if (!url || !token) return null;
   return { url, token };
 }
@@ -109,7 +109,7 @@ export async function dispatchOnboardingToVpsB(params: {
       state: "queued",
       result: {
         dispatch: "skipped",
-        reason: "missing_vps_b_onboarding_config",
+        reason: "missing_nexius_control_onboarding_config",
       },
     };
   }
@@ -134,8 +134,8 @@ export async function dispatchOnboardingToVpsB(params: {
       dispatched: true,
       state: "failed",
       result: json,
-      errorCode: "VPS_B_ONBOARDING_HTTP_ERROR",
-      errorMessage: `VPS B onboarding request failed (${response.status})`,
+      errorCode: "NEXIUS_CONTROL_ONBOARDING_HTTP_ERROR",
+      errorMessage: `Nexius Control onboarding request failed (${response.status})`,
     };
   }
 

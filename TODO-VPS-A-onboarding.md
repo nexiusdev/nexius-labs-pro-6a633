@@ -57,8 +57,8 @@ Status:
 ## Remaining Operational Work
 - Apply new Supabase migrations in target environment
 - Seed `telegram_bot_pool` with real bot inventory
-- Set `VPS_B_ONBOARDING_URL`
-- Set `VPS_B_ONBOARDING_TOKEN`
+- Set `NEXIUS_CONTROL_ONBOARDING_URL`
+- Set `NEXIUS_CONTROL_ONBOARDING_TOKEN`
 - Validate against real VPS B endpoint
 
 ## Operator Tooling
