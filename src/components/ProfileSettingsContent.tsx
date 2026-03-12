@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAuthHeaders } from "@/lib/auth-client";
 
 type ProfileResponse = {
@@ -15,6 +16,7 @@ type ProfileResponse = {
 };
 
 export default function ProfileSettingsContent() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
@@ -39,6 +41,13 @@ export default function ProfileSettingsContent() {
         });
         const json = (await res.json().catch(() => ({}))) as ProfileResponse;
         if (cancelled) return;
+
+        if (res.status === 401 || json.error === "Unauthorized") {
+          const next = encodeURIComponent("/account/profile");
+          router.replace(`/auth?mode=signin&next=${next}`);
+          return;
+        }
+
         if (!res.ok || !json.profile) {
           setError(json.error || "Failed to load profile");
           return;

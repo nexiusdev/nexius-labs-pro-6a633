@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAuthHeaders } from "@/lib/auth-client";
 
@@ -25,6 +26,7 @@ type ResponseShape = {
 };
 
 export default function AccountSubscriptionsContent() {
+  const router = useRouter();
   const [data, setData] = useState<ResponseShape | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +42,13 @@ export default function AccountSubscriptionsContent() {
           cache: "no-store",
         });
         const json = (await res.json().catch(() => ({}))) as ResponseShape;
+
+        if (res.status === 401 || json.error === "Unauthorized") {
+          const next = encodeURIComponent("/account/subscriptions");
+          router.replace(`/auth?mode=signin&next=${next}`);
+          return;
+        }
+
         if (!cancelled) setData(json);
       } finally {
         if (!cancelled) setLoading(false);
