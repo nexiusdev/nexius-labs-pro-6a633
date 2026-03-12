@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getAuthHeaders } from "@/lib/auth-client";
+import OnboardingStatusCard from "@/components/OnboardingStatusCard";
 
 type StatusResp = {
   ok: boolean;
@@ -99,6 +100,17 @@ export default function SubscriptionStatusCard(props: { subscriptionId: string }
           <div>
             Roles: <span className="font-mono">{sub.roleIds.join(",") || "-"}</span>
           </div>
+        </div>
+      ) : null}
+
+      {sub?.status === "active" ? (
+        <div className="mt-6">
+          <OnboardingStatusCard
+            subscriptionId={sub.id}
+            roleIds={sub.roleIds}
+            currency={sub.currency}
+            monthlyTotal={sub.monthlyAmount}
+          />
         </div>
       ) : null}
 

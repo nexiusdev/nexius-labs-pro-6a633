@@ -14,6 +14,11 @@ const pages = [
   { href: "/why-nexius", label: "Why Nexius" },
 ];
 
+const accountPages = [
+  { href: "/account/subscriptions", label: "Subscriptions" },
+  { href: "/account/profile", label: "Profile" },
+];
+
 export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -27,11 +32,6 @@ export default function Navigation() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
 
   const forceSolid = pathname === "/auth" || pathname.startsWith("/payment");
 
@@ -94,6 +94,21 @@ export default function Navigation() {
             </Link>
           )}
           {!loading && user && (
+            <>
+              {accountPages.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    pathname === href ? "border-blue-400 text-white" : ""
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </>
+          )}
+          {!loading && user && (
             <button
               onClick={() => signOut()}
               className="border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-full px-4 py-2 text-sm font-medium transition-colors"
@@ -127,6 +142,7 @@ export default function Navigation() {
               <Link
                 key={href}
                 href={href}
+                onClick={() => setMobileOpen(false)}
                 className="text-lg font-medium text-slate-200 hover:text-white transition-colors"
               >
                 {label}
@@ -134,6 +150,7 @@ export default function Navigation() {
             ))}
             <Link
               href="/interviews"
+              onClick={() => setMobileOpen(false)}
               className="text-lg font-medium text-slate-200 hover:text-white transition-colors inline-flex items-center gap-2"
             >
               <Mic className="w-4 h-4" />
@@ -141,6 +158,7 @@ export default function Navigation() {
             </Link>
             <Link
               href="/shortlist"
+              onClick={() => setMobileOpen(false)}
               className="text-lg font-medium text-slate-200 hover:text-white transition-colors inline-flex items-center gap-2"
             >
               <Star className="w-4 h-4" />
@@ -150,14 +168,32 @@ export default function Navigation() {
               {!loading && !user && (
                 <Link
                   href="/auth?mode=signin"
+                  onClick={() => setMobileOpen(false)}
                   className="border border-slate-600 text-slate-200 text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
                 >
                   Sign in
                 </Link>
               )}
               {!loading && user && (
+                <>
+                  {accountPages.map(({ href, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setMobileOpen(false)}
+                      className="border border-slate-600 text-slate-200 text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </>
+              )}
+              {!loading && user && (
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    signOut();
+                  }}
                   className="border border-slate-600 text-slate-200 text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
                 >
                   Log out
@@ -165,6 +201,7 @@ export default function Navigation() {
               )}
               <Link
                 href="/#contact"
+                onClick={() => setMobileOpen(false)}
                 className="bg-blue-600 hover:bg-blue-500 text-white text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
               >
                 Free Consultation
