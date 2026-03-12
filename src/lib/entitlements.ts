@@ -7,8 +7,12 @@ export async function ensureCustomerEntitlements(params: {
   subscriptionId: string;
   customerId: string;
   roleIds: string[];
+  actor?: string;
 }) {
   if (params.roleIds.length === 0) return;
+
+  const actor = params.actor || `user:${params.userId}`;
+  const now = new Date().toISOString();
 
   const rows = params.roleIds.map((roleId) => ({
     user_id: params.userId,
@@ -16,6 +20,10 @@ export async function ensureCustomerEntitlements(params: {
     subscription_id: params.subscriptionId,
     role_id: roleId,
     status: "active",
+    created_by: actor,
+    updated_by: actor,
+    last_action: "ensure_entitlement",
+    last_action_at: now,
   }));
 
   const { error } = await db.from("customer_entitlements").upsert(rows, {

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:local": "tsx scripts/seed-nexius-os.ts"
+    "seed:local": "tsx scripts/seed-nexius-os.ts",
+    "seed:telegram-bot-pool": "tsx scripts/seed-telegram-bot-pool.ts",
+    "reconcile:vps-a-onboarding": "tsx scripts/reconcile-vps-a-onboarding.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

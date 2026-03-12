@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
       subscriptionId: data.id,
       customerId,
       roleIds: (data.role_ids || []).map((value: unknown) => String(value)),
+      actor: "system:subscription_status",
     }).catch(() => {});
   }
 

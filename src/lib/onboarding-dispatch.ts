@@ -60,6 +60,10 @@ export async function assignBotToCustomer(customerId: string): Promise<AssignedB
       bot_pool_id: bot.id,
       assignment_status: "assigned",
       assigned_at: now,
+      created_by: "system:onboarding_dispatch",
+      updated_by: "system:onboarding_dispatch",
+      last_action: "assign_bot",
+      last_action_at: now,
     })
     .select("id")
     .single();
@@ -74,6 +78,9 @@ export async function assignBotToCustomer(customerId: string): Promise<AssignedB
       assigned_count: Number(bot.assigned_count || 0) + 1,
       last_used_at: now,
       updated_at: now,
+      updated_by: "system:onboarding_dispatch",
+      last_action: "assign_bot",
+      last_action_at: now,
     })
     .eq("id", bot.id);
 
@@ -146,7 +153,10 @@ export async function updateOnboardingJobState(params: {
   result: Record<string, unknown>;
   errorCode?: string | null;
   errorMessage?: string | null;
+  actor?: string;
+  action?: string;
 }) {
+  const now = new Date().toISOString();
   const { error } = await db
     .from("onboarding_jobs")
     .update({
@@ -154,7 +164,10 @@ export async function updateOnboardingJobState(params: {
       result: params.result,
       error_code: params.errorCode ?? null,
       error_message: params.errorMessage ?? null,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
+      updated_by: params.actor || "system:onboarding_dispatch",
+      last_action: params.action || "update_state",
+      last_action_at: now,
     })
     .eq("id", params.onboardingJobId);
 

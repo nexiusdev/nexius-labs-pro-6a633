@@ -52,7 +52,7 @@ Status:
 - Add reconciliation for subscriptions vs entitlements vs onboarding jobs
 
 Status:
-- pending
+- complete
 
 ## Remaining Operational Work
 - Apply new Supabase migrations in target environment
@@ -60,3 +60,8 @@ Status:
 - Set `VPS_B_ONBOARDING_URL`
 - Set `VPS_B_ONBOARDING_TOKEN`
 - Validate against real VPS B endpoint
+
+## Operator Tooling
+- `npm run seed:telegram-bot-pool -- <json-file>`
+- `npm run reconcile:vps-a-onboarding`
+- `npm run reconcile:vps-a-onboarding -- --apply`

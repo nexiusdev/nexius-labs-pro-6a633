@@ -72,6 +72,8 @@ async function dispatchExistingOrNewJob(params: {
     result: dispatched.result,
     errorCode: dispatched.errorCode ?? null,
     errorMessage: dispatched.errorMessage ?? null,
+    actor: "system:onboarding_dispatch",
+    action: "dispatch_to_vps_b",
   });
 
   return dispatched;
@@ -170,6 +172,8 @@ export async function POST(req: NextRequest) {
           result: { dispatch: "failed" },
           errorCode: "ONBOARDING_DISPATCH_FAILED",
           errorMessage: message,
+          actor: "system:onboarding_dispatch",
+          action: "dispatch_failed",
         });
 
         return NextResponse.json({ error: message }, { status: 500 });
@@ -193,6 +197,7 @@ export async function POST(req: NextRequest) {
       subscriptionId,
       customerId,
       roleIds,
+      actor: `user:${userId}`,
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to create entitlements" }, { status: 500 });
@@ -218,6 +223,10 @@ export async function POST(req: NextRequest) {
       request_id: requestId,
       state: "queued",
       payload,
+      created_by: `user:${userId}`,
+      updated_by: `user:${userId}`,
+      last_action: "create_job",
+      last_action_at: new Date().toISOString(),
     })
     .select("id,customer_id,state,idempotency_key,request_id")
     .single();
@@ -258,6 +267,8 @@ export async function POST(req: NextRequest) {
       result: { dispatch: "failed" },
       errorCode: "BOT_ASSIGNMENT_FAILED",
       errorMessage: message,
+      actor: `user:${userId}`,
+      action: "assign_bot_failed",
     });
 
     return NextResponse.json({ error: message }, { status: 500 });
