@@ -1,3 +1,5 @@
+import { Agent } from "undici";
+
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const db = supabaseAdmin.schema("nexius_os");
@@ -13,8 +15,9 @@ export type AssignedBot = {
 function requiredOnboardingEnv() {
   const url = (process.env.NEXIUS_CONTROL_ONBOARDING_URL || "").trim();
   const token = (process.env.NEXIUS_CONTROL_ONBOARDING_TOKEN || "").trim();
+  const allowSelfSignedTls = (process.env.NEXIUS_CONTROL_ALLOW_SELF_SIGNED_TLS || "").trim() === "true";
   if (!url || !token) return null;
-  return { url, token };
+  return { url, token, allowSelfSignedTls };
 }
 
 export async function assignBotToCustomer(customerId: string): Promise<AssignedBot> {
@@ -125,6 +128,13 @@ export async function dispatchOnboardingToVpsB(params: {
     },
     body: JSON.stringify(params.payload),
     cache: "no-store",
+    dispatcher: config.allowSelfSignedTls
+      ? new Agent({
+          connect: {
+            rejectUnauthorized: false,
+          },
+        })
+      : undefined,
   });
 
   const json = await response.json().catch(() => ({}));
