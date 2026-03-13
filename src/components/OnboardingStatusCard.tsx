@@ -97,11 +97,20 @@ export default function OnboardingStatusCard(props: {
     );
   }
 
+  const resultAny = (job?.result || {}) as any;
+  const botUsername = typeof resultAny.telegram_bot_username === "string"
+    ? String(resultAny.telegram_bot_username)
+    : typeof resultAny?.bot?.botUsername === "string"
+      ? String(resultAny.bot.botUsername)
+      : "";
+
+  const telegramBotUrl = botUsername ? `https://t.me/${botUsername}` : "";
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
       <h2 className="text-xl font-bold text-slate-900">Onboarding Status</h2>
       <p className="mt-2 text-sm text-slate-500">
-        {loading ? "Checking onboarding status…" : "Latest onboarding state from VPS A orchestration."}
+        {loading ? "Checking onboarding status…" : "Latest onboarding status."}
       </p>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1">
@@ -114,6 +123,19 @@ export default function OnboardingStatusCard(props: {
         <div>
           Request ID: <span className="font-mono">{job.requestId}</span>
         </div>
+        {job.state === "completed" && telegramBotUrl ? (
+          <div>
+            Message this bot to begin:{" "}
+            <a
+              className="font-mono text-emerald-700 hover:underline"
+              href={telegramBotUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              @{botUsername}
+            </a>
+          </div>
+        ) : null}
       </div>
 
       {job.errorMessage ? (

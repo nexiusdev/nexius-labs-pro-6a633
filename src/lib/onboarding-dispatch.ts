@@ -1,4 +1,4 @@
-import { Agent } from "undici";
+import { Agent, fetch as undiciFetch } from "undici";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -117,25 +117,51 @@ export async function dispatchOnboardingToVpsB(params: {
     };
   }
 
-  const response = await fetch(config.url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      Authorization: `Bearer ${config.token}`,
-      "Idempotency-Key": params.idempotencyKey,
-      "X-Request-Id": params.requestId,
-      "X-Onboarding-Job-Id": params.onboardingJobId,
-    },
-    body: JSON.stringify(params.payload),
-    cache: "no-store",
-    dispatcher: config.allowSelfSignedTls
-      ? new Agent({
-          connect: {
-            rejectUnauthorized: false,
-          },
-        })
-      : undefined,
-  });
+  const controller = new AbortController();
+  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await undiciFetch(config.url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${config.token}`,
+        "Idempotency-Key": params.idempotencyKey,
+        "X-Request-Id": params.requestId,
+        "X-Onboarding-Job-Id": params.onboardingJobId,
+      },
+      body: JSON.stringify(params.payload),
+      signal: controller.signal,
+      dispatcher: config.allowSelfSignedTls
+        ? new Agent({
+            connectTimeout: timeoutMs,
+            connect: {
+              rejectUnauthorized: false,
+            },
+          })
+        : undefined,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const aborted = message.toLowerCase().includes("aborted") || message.toLowerCase().includes("abort");
+    return {
+      dispatched: true,
+      state: "failed",
+      result: {
+        dispatch: "failed",
+        reason: aborted ? "timeout" : "network_error",
+        message,
+      },
+      errorCode: aborted ? "NEXIUS_CONTROL_ONBOARDING_TIMEOUT" : "NEXIUS_CONTROL_ONBOARDING_NETWORK_ERROR",
+      errorMessage: aborted
+        ? `Nexius Control onboarding request timed out after ${timeoutMs}ms`
+        : `Nexius Control onboarding request failed: ${message}`,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const json = await response.json().catch(() => ({}));
 

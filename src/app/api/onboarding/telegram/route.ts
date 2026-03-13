@@ -44,6 +44,7 @@ async function dispatchExistingOrNewJob(params: {
 }) {
   const botAssignment = await assignBotToCustomer(params.customerId);
   const dispatchPayload = {
+    // Nexius Control expects camelCase keys with a nested `bot` object.
     customerId: params.customerId,
     fullName: params.payload.fullName,
     telegramUserId: params.payload.telegramUserId,
