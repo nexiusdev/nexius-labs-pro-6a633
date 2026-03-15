@@ -130,7 +130,10 @@ export async function dispatchOnboardingToVpsB(params: {
         Authorization: `Bearer ${config.token}`,
         "Idempotency-Key": params.idempotencyKey,
         "X-Request-Id": params.requestId,
-        "X-Onboarding-Job-Id": params.onboardingJobId,
+        // Nexius Control expects a human-friendly job ref like: job_<requestId-without-prefix>
+        // Keep the canonical UUID in a separate header for debugging.
+        "X-Onboarding-Job-Id": `job_${params.requestId.replace(/^req_/, "")}`,
+        "X-Onboarding-Job-UUID": params.onboardingJobId,
       },
       body: JSON.stringify(params.payload),
       signal: controller.signal,

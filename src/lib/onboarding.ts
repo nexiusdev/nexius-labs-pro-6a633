@@ -18,8 +18,10 @@ export function buildCustomerId(fullName: string, subscriptionId: string) {
   return `${base}-${suffix}`;
 }
 
-export function buildOnboardingIdempotencyKey(subscriptionId: string) {
-  return `onboard:${subscriptionId}`;
+// Idempotency key used for Nexius Control onboarding calls.
+// Nexius Control expects a customer-scoped key like: onboard-<customerId>
+export function buildOnboardingIdempotencyKey(customerId: string) {
+  return `onboard-${customerId}`;
 }
 
 export function buildOnboardingRequestId() {

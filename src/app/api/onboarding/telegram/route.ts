@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   const customerId = buildCustomerId(fullName, subscriptionId);
-  const idempotencyKey = buildOnboardingIdempotencyKey(subscriptionId);
+  const idempotencyKey = buildOnboardingIdempotencyKey(customerId);
   const requestId = buildOnboardingRequestId();
   const roleIds = Array.isArray(subscription.role_ids)
     ? subscription.role_ids.map((value: unknown) => String(value))
