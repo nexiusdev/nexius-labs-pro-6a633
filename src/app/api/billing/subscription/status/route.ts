@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getUserIdFromRequest } from "@/lib/auth-server";
+import { ensureCustomerEntitlements } from "@/lib/entitlements";
+import { buildCustomerId } from "@/lib/onboarding";
 
 const db = supabaseAdmin.schema("nexius_os");
+
+type BillingCheckoutResponse = {
+  subscription_id?: string;
+  status?: string;
+};
 
 export async function GET(req: NextRequest) {
   const userId = await getUserIdFromRequest(req);
@@ -27,7 +34,7 @@ export async function GET(req: NextRequest) {
   if (data.status === "initiated" && data.provider_checkout_id) {
     try {
       const { airwallexFetch } = await import("@/lib/airwallex");
-      const checkout = await airwallexFetch<any>(`/api/v1/billing_checkouts/${data.provider_checkout_id}`, {
+      const checkout = await airwallexFetch<BillingCheckoutResponse>(`/api/v1/billing_checkouts/${data.provider_checkout_id}`, {
         method: "GET",
       });
 
@@ -39,16 +46,27 @@ export async function GET(req: NextRequest) {
           .from("subscriptions")
           .update({ provider_subscription_id: providerSubId })
           .eq("id", data.id);
-        (data as any).provider_subscription_id = providerSubId;
+        data.provider_subscription_id = providerSubId;
       }
 
       if (checkoutStatus === "COMPLETED") {
         await db.from("subscriptions").update({ status: "active" }).eq("id", data.id);
-        (data as any).status = "active";
+        data.status = "active";
       }
     } catch {
       // ignore reconciliation failures; webhooks will eventually catch up
     }
+  }
+
+  if (data.status === "active") {
+    const customerId = buildCustomerId(`customer-${data.id}`, data.id);
+    await ensureCustomerEntitlements({
+      userId,
+      subscriptionId: data.id,
+      customerId,
+      roleIds: (data.role_ids || []).map((value: unknown) => String(value)),
+      actor: "system:subscription_status",
+    }).catch(() => {});
   }
 
   return NextResponse.json({
@@ -63,4 +81,3 @@ export async function GET(req: NextRequest) {
     },
   });
 }
-

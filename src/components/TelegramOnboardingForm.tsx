@@ -1,24 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAuthHeaders } from "@/lib/auth-client";
 
 export default function TelegramOnboardingForm(props: {
+  subscriptionId: string;
   roleIds: string[];
   currency: string;
   monthlyTotal?: number;
+  onCreated?: () => void;
 }) {
-  const { roleIds, currency, monthlyTotal } = props;
+  const { subscriptionId, roleIds, currency, monthlyTotal, onCreated } = props;
 
   const [fullName, setFullName] = useState("");
-  const [telegramUsername, setTelegramUsername] = useState("");
-  const [telegramBotToken, setTelegramBotToken] = useState("");
+  const [telegramUserId, setTelegramUserId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<
     | { kind: "idle" }
-    | { kind: "ok" }
+    | { kind: "ok"; customerId: string; state: string }
     | { kind: "error"; message: string }
   >({ kind: "idle" });
+  const [prefillLoading, setPrefillLoading] = useState(true);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfile() {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch("/api/account/profile", {
+          headers,
+          cache: "no-store",
+        });
+        const json = await res.json().catch(() => ({}));
+        if (cancelled || !res.ok) return;
+        if (typeof json?.profile?.fullName === "string") {
+          setFullName(json.profile.fullName);
+        }
+        if (typeof json?.profile?.telegramUserId === "string") {
+          setTelegramUserId(json.profile.telegramUserId);
+        }
+      } finally {
+        if (!cancelled) setPrefillLoading(false);
+      }
+    }
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,13 +57,14 @@ export default function TelegramOnboardingForm(props: {
     setStatus({ kind: "idle" });
 
     try {
+      const headers = await getAuthHeaders();
       const res = await fetch("/api/onboarding/telegram", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...headers },
         body: JSON.stringify({
+          subscriptionId,
           fullName,
-          telegramUsername: telegramUsername.trim(),
-          telegramBotToken,
+          telegramUserId: telegramUserId.trim(),
           roleIds,
           currency,
           monthlyTotal,
@@ -45,8 +77,12 @@ export default function TelegramOnboardingForm(props: {
         throw new Error(json?.error || `Request failed (${res.status})`);
       }
 
-      setStatus({ kind: "ok" });
-      setTelegramBotToken("");
+      setStatus({
+        kind: "ok",
+        customerId: String(json?.customerId || ""),
+        state: String(json?.state || "queued"),
+      });
+      onCreated?.();
     } catch (err) {
       setStatus({ kind: "error", message: err instanceof Error ? err.message : "Unknown error" });
     } finally {
@@ -81,8 +117,8 @@ export default function TelegramOnboardingForm(props: {
         <input
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900"
           placeholder="Your Telegram User ID"
-          value={telegramUsername}
-          onChange={(e) => setTelegramUsername(e.target.value)}
+          value={telegramUserId}
+          onChange={(e) => setTelegramUserId(e.target.value)}
           required
         />
 
@@ -96,28 +132,8 @@ export default function TelegramOnboardingForm(props: {
         </details>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-slate-800">Telegram bot token</label>
-        <input
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 font-mono"
-          placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-          value={telegramBotToken}
-          onChange={(e) => setTelegramBotToken(e.target.value)}
-          required
-        />
-
-        <details className="mt-2">
-          <summary className="cursor-pointer text-xs font-medium text-slate-600">
-            How do I create a bot and get the token?
-          </summary>
-          <div className="mt-2 text-xs text-slate-600 leading-relaxed">
-            In Telegram, message <span className="font-mono">@BotFather</span> → run <span className="font-mono">/newbot</span> → follow the prompts → copy the token it gives you.
-          </div>
-        </details>
-
-        <p className="text-xs text-slate-500 mt-2">
-          Stored server-side. Don’t paste this in chat.
-        </p>
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+        Telegram bot assignment is handled internally after onboarding. You only need to provide your Telegram user ID.
       </div>
 
       <button
@@ -125,12 +141,13 @@ export default function TelegramOnboardingForm(props: {
         disabled={submitting}
         className="w-full inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white px-5 py-3 rounded-lg text-sm font-semibold transition-colors"
       >
-        {submitting ? "Submitting…" : "Submit Telegram details"}
+        {submitting ? "Submitting…" : prefillLoading ? "Loading profile…" : "Start onboarding"}
       </button>
 
       {status.kind === "ok" ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 text-sm">
-          Submitted. We’ll proceed with provisioning.
+          Onboarding job created for <span className="font-mono">{status.customerId || "customer"}</span>. Current state:{" "}
+          <span className="font-semibold">{status.state}</span>.
         </div>
       ) : null}
 
