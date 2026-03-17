@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { getAuthHeaders } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { getAccessToken } from "@/lib/auth-client";
 
-export default function AirwallexSubscribeButton(props: {
-  roleIds: string[];
-}) {
+export default function AirwallexSubscribeButton(props: { roleIds: string[] }) {
   const { roleIds } = props;
+  const router = useRouter();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,10 +16,22 @@ export default function AirwallexSubscribeButton(props: {
     setError(null);
 
     try {
-      const headers = await getAuthHeaders();
+      // If the user isn't signed in on the current origin (e.g. a new trycloudflare domain),
+      // we will not have a Supabase session token and the API will 401.
+      const token = await getAccessToken();
+      if (!token) {
+        const next = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/payment";
+        router.push(`/auth?mode=signin&next=${encodeURIComponent(next)}`);
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/billing/subscription/create", {
         method: "POST",
-        headers: { "content-type": "application/json", ...headers },
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ roleIds }),
       });
 

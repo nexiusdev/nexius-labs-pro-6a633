@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAirwallexWebhookSignature } from "@/lib/airwallex";
+import { ensureCustomerEntitlements } from "@/lib/entitlements";
+import { buildCustomerId } from "@/lib/onboarding";
 
 const db = supabaseAdmin.schema("nexius_os");
+
+type AirwallexWebhookEvent = {
+  id?: string;
+  name?: string;
+  data?: {
+    metadata?: Record<string, unknown>;
+    object?: {
+      metadata?: Record<string, unknown>;
+    };
+    subscription?: {
+      metadata?: Record<string, unknown>;
+    };
+  };
+};
 
 export async function POST(req: NextRequest) {
   const secret = (process.env.AIRWALLEX_WEBHOOK_SECRET || "").trim();
@@ -20,7 +36,7 @@ export async function POST(req: NextRequest) {
   const ok = verifyAirwallexWebhookSignature({ secret, timestamp, signature, rawBody });
   if (!ok) return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
 
-  const event = JSON.parse(rawBody || "{}") as any;
+  const event = JSON.parse(rawBody || "{}") as AirwallexWebhookEvent;
   const eventId = String(event?.id || "");
   const eventName = String(event?.name || "");
 
@@ -54,6 +70,24 @@ export async function POST(req: NextRequest) {
       await db.from("subscriptions").update({ status: "past_due" }).eq("id", internalSubId);
     } else if (normalized.includes("invoice") && normalized.includes("paid")) {
       await db.from("subscriptions").update({ status: "active" }).eq("id", internalSubId);
+      const { data: subscription } = await db
+        .from("subscriptions")
+        .select("id,user_id,role_ids")
+        .eq("id", internalSubId)
+        .maybeSingle();
+
+      if (subscription?.id && subscription.user_id) {
+        const customerId = buildCustomerId(`customer-${subscription.id}`, subscription.id);
+        await ensureCustomerEntitlements({
+          userId: String(subscription.user_id),
+          subscriptionId: String(subscription.id),
+          customerId,
+          roleIds: Array.isArray(subscription.role_ids)
+            ? subscription.role_ids.map((value: unknown) => String(value))
+            : [],
+          actor: "system:airwallex_webhook",
+        }).catch(() => {});
+      }
     }
   }
 
