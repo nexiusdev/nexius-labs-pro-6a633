@@ -1,5 +1,3 @@
-import { Agent, fetch as undiciFetch } from "undici";
-
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const db = supabaseAdmin.schema("nexius_os");
@@ -123,29 +121,36 @@ export async function dispatchOnboardingToVpsB(params: {
 
   let response: Response;
   try {
-    response = await undiciFetch(config.url, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        Authorization: `Bearer ${config.token}`,
-        "Idempotency-Key": params.idempotencyKey,
-        "X-Request-Id": params.requestId,
-        // Nexius Control expects a human-friendly job ref like: job_<requestId-without-prefix>
-        // Keep the canonical UUID in a separate header for debugging.
-        "X-Onboarding-Job-Id": `job_${params.requestId.replace(/^req_/, "")}`,
-        "X-Onboarding-Job-UUID": params.onboardingJobId,
-      },
-      body: JSON.stringify(params.payload),
-      signal: controller.signal,
-      dispatcher: config.allowSelfSignedTls
-        ? new Agent({
-            connectTimeout: timeoutMs,
-            connect: {
-              rejectUnauthorized: false,
-            },
-          })
-        : undefined,
-    });
+    const previousTlsSetting = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    try {
+      if (config.allowSelfSignedTls) {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+      }
+
+      response = await fetch(config.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${config.token}`,
+          "Idempotency-Key": params.idempotencyKey,
+          "X-Request-Id": params.requestId,
+          // Nexius Control expects a human-friendly job ref like: job_<requestId-without-prefix>
+          // Keep the canonical UUID in a separate header for debugging.
+          "X-Onboarding-Job-Id": `job_${params.requestId.replace(/^req_/, "")}`,
+          "X-Onboarding-Job-UUID": params.onboardingJobId,
+        },
+        body: JSON.stringify(params.payload),
+        signal: controller.signal,
+      });
+    } finally {
+      if (config.allowSelfSignedTls) {
+        if (previousTlsSetting === undefined) {
+          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+        } else {
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsSetting;
+        }
+      }
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const aborted = message.toLowerCase().includes("aborted") || message.toLowerCase().includes("abort");
