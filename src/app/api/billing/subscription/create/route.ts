@@ -13,7 +13,7 @@ function computeMonthlySgd(roleIds: string[]): number {
   for (const id of roleIds) {
     const role = byId.get(id);
     if (!role) throw new Error(`Unknown role: ${id}`);
-    total += getRolePricing({ workflow: role.workflow, complexity: role.complexity, governance: role.governance }).monthlySgd;
+    total += getRolePricing(role).monthlySgd;
   }
   return total;
 }

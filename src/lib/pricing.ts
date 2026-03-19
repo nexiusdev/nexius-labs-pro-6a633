@@ -1,42 +1,66 @@
-import type { Complexity, Governance, Role, Workflow } from "@/data/roles";
+import type { Role } from "@/data/roles";
+
+type PricingBucket = "A" | "B" | "C";
 
 type PricingConfig = {
+  bucket: PricingBucket;
   monthlySgd: number;
   setupSgd: number;
 };
 
-const workflowBase: Record<Workflow, number> = {
-  CRM: 150,
-  Finance: 170,
-  ERP: 190,
-  HRMS: 160,
+const BUCKET_PRICING: Record<PricingBucket, number> = {
+  A: 99,
+  B: 199,
+  C: 399,
 };
 
-const complexityUplift: Record<Complexity, number> = {
-  Starter: 0,
-  Intermediate: 25,
-  Advanced: 50,
-};
+const BUCKET_C_KEYWORDS = [
+  "legal",
+  "compliance",
+  "treasury",
+  "strategy",
+  "planning lead",
+  "profitability",
+  "commercial finance",
+  "financial reporting",
+  "payroll",
+  "platform lead",
+  "workforce planning",
+  "product costing",
+  "production planning",
+] as const;
 
-const governanceUplift: Record<Governance, number> = {
-  Auto: 0,
-  "Exception-only": 5,
-  "Approval Required": 10,
-};
+const BUCKET_A_KEYWORDS = [
+  "data entry",
+  "steward",
+  "coordinator",
+  "onboarding specialist",
+  "leave & attendance",
+  "lead qualification",
+  "assistant",
+] as const;
 
-function clampRange(value: number, min = 150, max = 250): number {
-  return Math.max(min, Math.min(max, value));
+function resolvePricingBucket(role: Pick<Role, "title">): PricingBucket {
+  const title = role.title.toLowerCase();
+
+  if (BUCKET_C_KEYWORDS.some((kw) => title.includes(kw))) {
+    return "C";
+  }
+
+  if (BUCKET_A_KEYWORDS.some((kw) => title.includes(kw))) {
+    return "A";
+  }
+
+  return "B";
 }
 
-export function getRolePricing(role: Pick<Role, "workflow" | "complexity" | "governance">): PricingConfig {
-  const rawMonthly =
-    workflowBase[role.workflow] +
-    complexityUplift[role.complexity] +
-    governanceUplift[role.governance];
-
-  const monthlySgd = clampRange(rawMonthly);
-  const setupSgd = 0;
-  return { monthlySgd, setupSgd };
+export function getRolePricing(role: Pick<Role, "title">): PricingConfig {
+  const bucket = resolvePricingBucket(role);
+  return {
+    bucket,
+    monthlySgd: BUCKET_PRICING[bucket],
+    setupSgd: 0,
+  };
 }
 
 export function formatSgd(amount: number): string {
