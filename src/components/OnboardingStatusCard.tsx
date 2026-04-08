@@ -16,6 +16,7 @@ type OnboardingStatusResponse = {
     id: string;
     customerId: string;
     state: string;
+    activationState?: string;
     idempotencyKey: string;
     requestId: string;
     errorCode: string | null;
@@ -60,7 +61,7 @@ export default function OnboardingStatusCard(props: {
       setLoading(true);
       try {
         const headers = await getAuthHeaders();
-        const res = await fetch(`/api/fulfillment/install?subscriptionId=${encodeURIComponent(subscriptionId)}`, {
+        const res = await fetch(`/api/onboarding/telegram?subscriptionId=${encodeURIComponent(subscriptionId)}`, {
           headers,
           cache: "no-store",
         });
@@ -96,7 +97,7 @@ export default function OnboardingStatusCard(props: {
 
     try {
       const headers = await getAuthHeaders();
-      await fetch("/api/fulfillment/install", {
+      await fetch("/api/onboarding/telegram", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -150,6 +151,9 @@ export default function OnboardingStatusCard(props: {
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1">
         <div>
           State: <span className="font-semibold">{job.state}</span>
+        </div>
+        <div>
+          Activation: <span className="font-semibold">{job.activationState || "needs_action"}</span>
         </div>
         <div>
           Customer ID: <span className="font-mono">{job.customerId}</span>

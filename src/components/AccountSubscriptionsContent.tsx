@@ -44,7 +44,7 @@ export default function AccountSubscriptionsContent() {
         const json = (await res.json().catch(() => ({}))) as ResponseShape;
 
         if (res.status === 401 || json.error === "Unauthorized") {
-          const next = encodeURIComponent("/account/subscriptions");
+          const next = encodeURIComponent("/portal/billing");
           router.replace(`/auth?mode=signin&next=${next}`);
           return;
         }
@@ -59,7 +59,7 @@ export default function AccountSubscriptionsContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   if (loading) {
     return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading subscriptions…</div>;
@@ -101,7 +101,7 @@ export default function AccountSubscriptionsContent() {
               </p>
             </div>
             <Link
-              href={`/payment/success?subscription=${encodeURIComponent(subscription.id)}`}
+              href={`/portal/onboarding?subscription=${encodeURIComponent(subscription.id)}`}
               className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
             >
               View onboarding

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import OnboardingStatusCard from "@/components/OnboardingStatusCard";
 import { getAuthHeaders } from "@/lib/auth-client";
@@ -13,11 +14,14 @@ type Subscription = {
 };
 
 export default function PortalOnboardingContent() {
+  const searchParams = useSearchParams();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const requestedSubscriptionId = (searchParams.get("subscription") || "").trim();
+
     async function load() {
       try {
         const headers = await getAuthHeaders();
@@ -27,7 +31,10 @@ export default function PortalOnboardingContent() {
         if (!res.ok || !json?.ok) throw new Error(json?.error || `Failed (${res.status})`);
 
         const subs = Array.isArray(json.subscriptions) ? json.subscriptions : [];
-        const active = subs.find((item) => String(item.status || "") === "active") || subs[0] || null;
+        const requested = requestedSubscriptionId
+          ? subs.find((item) => String(item.id || "") === requestedSubscriptionId)
+          : null;
+        const active = requested || subs.find((item) => String(item.status || "") === "active") || subs[0] || null;
         if (!active) {
           setSubscription(null);
           return;
@@ -47,7 +54,7 @@ export default function PortalOnboardingContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [searchParams]);
 
   if (error) return <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>;
   if (!subscription) return <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">No subscription found.</div>;
