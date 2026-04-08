@@ -62,6 +62,63 @@ function buildFallbackFromRoles(roleIds: string[]): ResolvedSku[] {
   }));
 }
 
+function fromRegistryRow(row: Record<string, unknown>): ResolvedSku {
+  return {
+    skuCode: String(row.sku_code || "").trim(),
+    packageId: String(row.package_id || stableFallbackPackageId()),
+    roleIds: Array.isArray(row.role_ids) ? row.role_ids.map((value: unknown) => String(value)) : [],
+    packageVersion: String(row.package_version || stableFallbackPackageVersion()),
+    sourceOwner: row.source_owner ? String(row.source_owner) : null,
+    sourceRepo: row.source_repo ? String(row.source_repo) : null,
+    sourceRef: row.source_ref ? String(row.source_ref) : null,
+    sourceSubdir: row.source_subdir ? String(row.source_subdir) : null,
+  };
+}
+
+async function resolveSkusFromRoles(roleIds: string[]): Promise<ResolvedSku[]> {
+  if (roleIds.length === 0) return [];
+
+  const { data, error } = await db
+    .from("sku_registry")
+    .select("sku_code,package_id,role_ids,package_version,source_owner,source_repo,source_ref,source_subdir")
+    .eq("active", true)
+    .overlaps("role_ids", roleIds);
+
+  if (error) {
+    throw new Error(`Failed to infer SKU registry mappings: ${error.message}`);
+  }
+
+  const candidates = (data || []).map((row) => fromRegistryRow(row as Record<string, unknown>));
+  if (candidates.length === 0) {
+    return buildFallbackFromRoles(roleIds);
+  }
+
+  const exactOrCovering = candidates
+    .filter((candidate) => roleIds.every((roleId) => candidate.roleIds.includes(roleId)))
+    .sort((a, b) => a.roleIds.length - b.roleIds.length || a.packageId.localeCompare(b.packageId));
+
+  if (exactOrCovering.length > 0) {
+    return [exactOrCovering[0]];
+  }
+
+  const resolved = new Map<string, ResolvedSku>();
+  for (const roleId of roleIds) {
+    const best = candidates
+      .filter((candidate) => candidate.roleIds.includes(roleId))
+      .sort((a, b) => a.roleIds.length - b.roleIds.length || a.packageId.localeCompare(b.packageId))[0];
+
+    if (best) {
+      resolved.set(best.skuCode, best);
+      continue;
+    }
+
+    const [fallback] = buildFallbackFromRoles([roleId]);
+    resolved.set(fallback.skuCode, fallback);
+  }
+
+  return [...resolved.values()];
+}
+
 export async function resolveSkus(params: {
   skuCodes?: string[];
   roleIds?: string[];
@@ -70,7 +127,7 @@ export async function resolveSkus(params: {
   const requestedRoleIds = uniq((params.roleIds || []).map((value) => String(value).trim()));
 
   if (requestedSkuCodes.length === 0) {
-    return buildFallbackFromRoles(requestedRoleIds);
+    return resolveSkusFromRoles(requestedRoleIds);
   }
 
   const { data, error } = await db
@@ -85,19 +142,10 @@ export async function resolveSkus(params: {
 
   const bySku = new Map<string, ResolvedSku>();
   for (const row of data || []) {
-    const skuCode = String(row.sku_code || "").trim();
+    const resolved = fromRegistryRow(row as Record<string, unknown>);
+    const skuCode = resolved.skuCode;
     if (!skuCode) continue;
-
-    bySku.set(skuCode, {
-      skuCode,
-      packageId: String(row.package_id || stableFallbackPackageId()),
-      roleIds: Array.isArray(row.role_ids) ? row.role_ids.map((value: unknown) => String(value)) : [],
-      packageVersion: String(row.package_version || stableFallbackPackageVersion()),
-      sourceOwner: row.source_owner ? String(row.source_owner) : null,
-      sourceRepo: row.source_repo ? String(row.source_repo) : null,
-      sourceRef: row.source_ref ? String(row.source_ref) : null,
-      sourceSubdir: row.source_subdir ? String(row.source_subdir) : null,
-    });
+    bySku.set(skuCode, resolved);
   }
 
   const resolved: ResolvedSku[] = [];

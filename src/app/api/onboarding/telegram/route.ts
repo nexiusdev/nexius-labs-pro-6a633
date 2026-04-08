@@ -8,6 +8,17 @@ import { mapStatus } from "@/lib/portal-data";
 
 const db = supabaseAdmin.schema("nexius_os");
 
+function isIncompleteSnapshot(snapshot: {
+  packageIds?: unknown[];
+  packageSources?: unknown[];
+  roleIds?: unknown[];
+}) {
+  const packageIds = Array.isArray(snapshot.packageIds) ? snapshot.packageIds : [];
+  const packageSources = Array.isArray(snapshot.packageSources) ? snapshot.packageSources : [];
+  const roleIds = Array.isArray(snapshot.roleIds) ? snapshot.roleIds : [];
+  return roleIds.length > 0 && (packageIds.length === 0 || packageSources.length === 0);
+}
+
 async function loadSubscription(subscriptionId: string) {
   const { data, error } = await db
     .from("subscriptions")
@@ -120,7 +131,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Subscription must be active before fulfillment" }, { status: 409 });
   }
 
-  const snapshot = subscription.purchase_snapshot && typeof subscription.purchase_snapshot === "object"
+  let snapshot = subscription.purchase_snapshot && typeof subscription.purchase_snapshot === "object"
     ? (subscription.purchase_snapshot as {
       contractVersion?: string;
       tenantProfile?: string;
@@ -139,6 +150,30 @@ export async function POST(req: NextRequest) {
         ? subscription.sku_codes.map((value: unknown) => String(value))
         : [],
     });
+
+  if (isIncompleteSnapshot(snapshot)) {
+    snapshot = await buildPurchaseSnapshot({
+      roleIds: Array.isArray(subscription.role_ids)
+        ? subscription.role_ids.map((value: unknown) => String(value))
+        : [],
+      skuCodes: Array.isArray(subscription.sku_codes)
+        ? subscription.sku_codes.map((value: unknown) => String(value))
+        : [],
+    });
+
+    await db
+      .from("subscriptions")
+      .update({
+        sku_codes: snapshot.skuCodes,
+        package_ids: snapshot.packageIds,
+        package_versions: snapshot.packageVersions,
+        contract_version: snapshot.contractVersion,
+        tenant_profile: snapshot.tenantProfile,
+        purchase_snapshot: snapshot,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", subscriptionId);
+  }
 
   const customerId = `customer-${String(subscription.id).replace(/-/g, "").slice(0, 8)}`;
 

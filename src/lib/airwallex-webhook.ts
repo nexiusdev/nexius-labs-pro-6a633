@@ -198,6 +198,10 @@ function parseSnapshotFromSubscription(subscription: {
   };
 }
 
+function snapshotNeedsRefresh(snapshot: PurchaseSnapshot) {
+  return snapshot.packageSources.length === 0 && snapshot.roleIds.length > 0;
+}
+
 export async function processAirwallexWebhookEvent(event: AirwallexWebhookEvent) {
   const ids = extractProviderIds(event);
   const idempotencyKey = buildLedgerIdempotencyKey(event);
@@ -259,7 +263,7 @@ export async function processAirwallexWebhookEvent(event: AirwallexWebhookEvent)
     }
 
     let snapshot = parseSnapshotFromSubscription(subscription);
-    if (snapshot.packageIds.length === 0) {
+    if (snapshot.packageIds.length === 0 || snapshotNeedsRefresh(snapshot)) {
       snapshot = await buildPurchaseSnapshot({
         roleIds: snapshot.roleIds,
         skuCodes: snapshot.skuCodes,
