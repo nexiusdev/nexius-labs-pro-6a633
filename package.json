@@ -9,7 +9,9 @@
     "lint": "eslint",
     "seed:local": "tsx scripts/seed-nexius-os.ts",
     "seed:telegram-bot-pool": "tsx scripts/seed-telegram-bot-pool.ts",
-    "reconcile:vps-a-onboarding": "tsx scripts/reconcile-vps-a-onboarding.ts"
+    "reconcile:vps-a-onboarding": "tsx scripts/reconcile-vps-a-onboarding.ts",
+    "worker:fulfillment": "tsx scripts/fulfillment-worker.ts",
+    "reconcile:payment-fulfillment": "tsx scripts/reconcile-payment-fulfillment.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

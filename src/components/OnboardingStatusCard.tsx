@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getAuthHeaders } from "@/lib/auth-client";
-import TelegramOnboardingForm from "@/components/TelegramOnboardingForm";
+
+type OnboardingTimelineItem = {
+  state: string;
+  stage: string | null;
+  detail: Record<string, unknown>;
+  createdAt: string | null;
+};
 
 type OnboardingStatusResponse = {
   ok: boolean;
@@ -14,8 +20,13 @@ type OnboardingStatusResponse = {
     requestId: string;
     errorCode: string | null;
     errorMessage: string | null;
-    result: Record<string, unknown>;
+    errorStage: string | null;
+    retryCount: number;
+    requestPayload: Record<string, unknown>;
+    responsePayload: Record<string, unknown>;
+    updatedAt: string | null;
   } | null;
+  timeline?: OnboardingTimelineItem[];
   error?: string;
 };
 
@@ -25,11 +36,13 @@ export default function OnboardingStatusCard(props: {
   currency: string;
   monthlyTotal: number;
 }) {
-  const { subscriptionId, roleIds, currency, monthlyTotal } = props;
+  const { subscriptionId } = props;
+
   const [data, setData] = useState<OnboardingStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [retrying, setRetrying] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +60,7 @@ export default function OnboardingStatusCard(props: {
         setData(json);
 
         const state = json?.onboardingJob?.state || "";
-        if (state === "queued" || state === "in_progress") {
+        if (state === "payment_confirmed" || state === "package_resolved" || state === "tenant_request_sent" || state === "in_progress") {
           window.setTimeout(poll, 2500);
           return;
         }
@@ -63,9 +76,12 @@ export default function OnboardingStatusCard(props: {
   }, [subscriptionId, refreshNonce]);
 
   const job = data?.onboardingJob;
+  const timeline = data?.timeline || [];
 
-  async function retryOnboarding() {
-    setRetrying(true);
+  async function createOrRefreshJob(retry: boolean) {
+    if (retry) setRetrying(true);
+    else setCreating(true);
+
     try {
       const headers = await getAuthHeaders();
       await fetch("/api/onboarding/telegram", {
@@ -76,58 +92,52 @@ export default function OnboardingStatusCard(props: {
         },
         body: JSON.stringify({
           subscriptionId,
-          retry: true,
+          retry,
         }),
       });
       setRefreshNonce((value) => value + 1);
     } finally {
-      setRetrying(false);
+      if (retry) setRetrying(false);
+      else setCreating(false);
     }
   }
 
   if (!job) {
     return (
-      <TelegramOnboardingForm
-        subscriptionId={subscriptionId}
-        roleIds={roleIds}
-        currency={currency}
-        monthlyTotal={monthlyTotal}
-        onCreated={() => setRefreshNonce((value) => value + 1)}
-      />
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
+        <h2 className="text-xl font-bold text-slate-900">Install Timeline</h2>
+        <p className="mt-2 text-sm text-slate-500">
+          No fulfillment job is active yet for this subscription.
+        </p>
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          Click <span className="font-semibold">Start install</span> to enqueue provisioning for this paid plan.
+        </div>
+
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => createOrRefreshJob(false)}
+            disabled={creating}
+            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {creating ? "Starting…" : "Start install"}
+          </button>
+        </div>
+      </div>
     );
   }
 
-  const resultAny = (job?.result || {}) as Record<string, unknown> & {
-    steps?: Array<{ name?: unknown; status?: unknown; detail?: unknown }>;
-    failed_step?: unknown;
-    telegram_bot_username?: unknown;
-    bot?: { botUsername?: unknown };
-  };
-  const botUsername = typeof resultAny.telegram_bot_username === "string"
-    ? String(resultAny.telegram_bot_username)
-    : typeof resultAny?.bot?.botUsername === "string"
-      ? String(resultAny.bot.botUsername)
-      : "";
-
-  const telegramBotUrl = botUsername ? `https://t.me/${botUsername}` : "";
-
-  const steps: Array<{ name?: unknown; status?: unknown; detail?: unknown }> = Array.isArray(resultAny?.steps)
-    ? resultAny.steps
-    : [];
-
-  const failedStep = typeof resultAny?.failed_step === "string" ? String(resultAny.failed_step) : "";
-
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
-      <h2 className="text-xl font-bold text-slate-900">Onboarding Status</h2>
+      <h2 className="text-xl font-bold text-slate-900">Install Timeline</h2>
       <p className="mt-2 text-sm text-slate-500">
-        {loading ? "Checking onboarding status…" : job.state === "in_progress" ? "Onboarding is running. Keep this page open." : "Latest onboarding status."}
+        {loading ? "Checking install status…" : "Latest provisioning and onboarding lifecycle."}
       </p>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1">
         <div>
           State: <span className="font-semibold">{job.state}</span>
-          {failedStep ? <span className="ml-2 text-rose-700">(failed at {failedStep})</span> : null}
         </div>
         <div>
           Customer ID: <span className="font-mono">{job.customerId}</span>
@@ -135,36 +145,24 @@ export default function OnboardingStatusCard(props: {
         <div>
           Request ID: <span className="font-mono">{job.requestId}</span>
         </div>
-        {job.state === "completed" && telegramBotUrl ? (
-          <div>
-            Message this bot to begin:{" "}
-            <a className="font-mono text-emerald-700 hover:underline" href={telegramBotUrl} target="_blank" rel="noreferrer">
-              @{botUsername}
-            </a>
-          </div>
-        ) : null}
+        <div>
+          Retry count: <span className="font-mono">{job.retryCount}</span>
+        </div>
       </div>
 
-      {steps.length ? (
+      {timeline.length ? (
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-sm font-semibold text-slate-900">Live steps</div>
+          <div className="text-sm font-semibold text-slate-900">Timeline</div>
           <ul className="mt-3 space-y-2 text-sm">
-            {steps.map((s, idx) => {
-              const name = typeof s?.name === "string" ? s.name : `step_${idx + 1}`;
-              const status = typeof s?.status === "string" ? s.status : "";
-              const detail = typeof s?.detail === "string" ? s.detail : "";
-
-              const color = status === "ok" ? "text-emerald-700" : status === "failed" ? "text-rose-700" : "text-slate-600";
-              return (
-                <li key={`${name}-${idx}`} className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="font-mono text-slate-900 break-words">{name}</div>
-                    {detail ? <div className="text-slate-500 break-words">{detail}</div> : null}
-                  </div>
-                  <div className={`shrink-0 font-semibold ${color}`}>{status || "…"}</div>
-                </li>
-              );
-            })}
+            {timeline.map((item, idx) => (
+              <li key={`${item.stage || item.state}-${idx}`} className="rounded-lg border border-slate-200 px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-slate-900">{item.stage || item.state}</span>
+                  <span className="text-slate-500">{item.createdAt || "-"}</span>
+                </div>
+                <div className="mt-1 text-slate-600">State: {item.state}</div>
+              </li>
+            ))}
           </ul>
         </div>
       ) : null}
@@ -172,19 +170,25 @@ export default function OnboardingStatusCard(props: {
       {job.errorMessage ? (
         <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
           {job.errorCode ? <div className="font-semibold">{job.errorCode}</div> : null}
+          {job.errorStage ? <div className="font-mono text-xs mb-1">stage: {job.errorStage}</div> : null}
           <div>{job.errorMessage}</div>
+          {(job.errorCode === "TENANT_ASSIGNMENT_NOT_FOUND" || job.errorCode === "TENANT_ALREADY_ASSIGNED") ? (
+            <div className="mt-2 text-xs">
+              This requires operator action in admin fulfillment queue before retry.
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      {(job.state === "failed" || job.state === "queued") ? (
+      {(job.state === "failed" || job.state === "payment_confirmed" || job.state === "package_resolved") ? (
         <div className="mt-4 flex gap-3">
           <button
             type="button"
-            onClick={retryOnboarding}
+            onClick={() => createOrRefreshJob(true)}
             disabled={retrying}
             className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {retrying ? "Retrying…" : "Retry onboarding"}
+            {retrying ? "Retrying…" : "Retry install"}
           </button>
           <button
             type="button"

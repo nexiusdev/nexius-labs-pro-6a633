@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getUserIdFromRequest } from "@/lib/auth-server";
 import { ensureCustomerEntitlements } from "@/lib/entitlements";
-import { buildCustomerId } from "@/lib/onboarding";
+import { buildCustomerIdFromSubscription } from "@/lib/fulfillment";
 
 const db = supabaseAdmin.schema("nexius_os");
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await db
     .from("subscriptions")
     .select(
-      "id,status,monthly_amount,currency,billing_starts_at,role_ids,user_id,provider_checkout_id,provider_subscription_id"
+      "id,status,monthly_amount,currency,billing_starts_at,role_ids,user_id,provider_checkout_id,provider_subscription_id,package_ids,package_versions,contract_version,purchase_snapshot"
     )
     .eq("id", id)
     .single();
@@ -59,12 +59,28 @@ export async function GET(req: NextRequest) {
   }
 
   if (data.status === "active") {
-    const customerId = buildCustomerId(`customer-${data.id}`, data.id);
+    const customerId = buildCustomerIdFromSubscription(String(data.id));
+    const purchaseSnapshot = data.purchase_snapshot && typeof data.purchase_snapshot === "object"
+      ? (data.purchase_snapshot as Record<string, unknown>)
+      : {};
+    const roleIds = Array.isArray(purchaseSnapshot.roleIds)
+      ? purchaseSnapshot.roleIds.map((value: unknown) => String(value))
+      : (data.role_ids || []).map((value: unknown) => String(value));
+    const packageIds = Array.isArray(purchaseSnapshot.packageIds)
+      ? purchaseSnapshot.packageIds.map((value: unknown) => String(value))
+      : (data.package_ids || []).map((value: unknown) => String(value));
+    const packageVersions = Array.isArray(purchaseSnapshot.packageVersions)
+      ? purchaseSnapshot.packageVersions.map((value: unknown) => String(value))
+      : (data.package_versions || []).map((value: unknown) => String(value));
+
     await ensureCustomerEntitlements({
       userId,
       subscriptionId: data.id,
       customerId,
-      roleIds: (data.role_ids || []).map((value: unknown) => String(value)),
+      roleIds,
+      packageIds,
+      packageVersions,
+      contractVersion: String(data.contract_version || "v2"),
       actor: "system:subscription_status",
     }).catch(() => {});
   }

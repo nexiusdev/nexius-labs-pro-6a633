@@ -4,6 +4,7 @@ import { getUserIdFromRequest } from "@/lib/auth-server";
 import { roles } from "@/data/roles";
 import { getRolePricing } from "@/lib/pricing";
 import { airwallexCreateBillingCheckoutSubscription, airwallexCreatePrice } from "@/lib/airwallex";
+import { persistSubscriptionSnapshot } from "@/lib/airwallex-webhook";
 
 const db = supabaseAdmin.schema("nexius_os");
 
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const roleIds: string[] = Array.isArray(body?.roleIds)
     ? body.roleIds.map((x: unknown) => String(x).trim()).filter(Boolean)
+    : [];
+  const skuCodes: string[] = Array.isArray(body?.skuCodes)
+    ? body.skuCodes.map((x: unknown) => String(x).trim()).filter(Boolean)
     : [];
 
   if (!roleIds.length) {
@@ -69,9 +73,15 @@ export async function POST(req: NextRequest) {
   const subscriptionId = created.id as string;
 
   try {
+    const snapshot = await persistSubscriptionSnapshot({
+      subscriptionId,
+      roleIds,
+      skuCodes,
+    });
+
     // Create a one-off recurring price matching this subscription amount.
     const price = await airwallexCreatePrice({ productId, currency: "SGD", flatAmount: monthlyAmount });
-    const priceId = String((price as any)?.id || "");
+    const priceId = String(price?.id || "");
     if (!priceId) throw new Error("Airwallex: missing price id");
 
     const successUrl = new URL("/payment/success", appBase);
@@ -88,12 +98,13 @@ export async function POST(req: NextRequest) {
       metadata: {
         nexius_subscription_id: subscriptionId,
         user_id: userId,
+        contract_version: snapshot.contractVersion,
       },
     });
 
-    const checkoutId = String((checkout as any)?.id || "");
-    const checkoutUrl = String((checkout as any)?.url || "");
-    const providerSubscriptionId = String((checkout as any)?.subscription_id || "");
+    const checkoutId = String(checkout?.id || "");
+    const checkoutUrl = String(checkout?.url || "");
+    const providerSubscriptionId = String(checkout?.subscription_id || "");
 
     // Billing checkout may return subscription_id only after completion.
     // We keep status=initiated until webhook updates it to active.
@@ -104,6 +115,12 @@ export async function POST(req: NextRequest) {
         provider_price_id: priceId,
         provider_checkout_id: checkoutId || null,
         provider_subscription_id: providerSubscriptionId || null,
+        sku_codes: snapshot.skuCodes,
+        package_ids: snapshot.packageIds,
+        package_versions: snapshot.packageVersions,
+        contract_version: snapshot.contractVersion,
+        tenant_profile: snapshot.tenantProfile,
+        purchase_snapshot: snapshot,
         status: "initiated",
       })
       .eq("id", subscriptionId);
