@@ -4,6 +4,7 @@ import { getUserIdFromRequest } from "@/lib/auth-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ensureFulfillmentJob } from "@/lib/fulfillment";
 import { buildPurchaseSnapshot } from "@/lib/purchase-snapshot";
+import { mapStatus } from "@/lib/portal-data";
 
 const db = supabaseAdmin.schema("nexius_os");
 
@@ -76,6 +77,7 @@ export async function GET(req: NextRequest) {
       id: String(job.id),
       customerId: String(job.customer_id || ""),
       state: String(job.state || ""),
+      activationState: mapStatus(String(job.state || "")),
       idempotencyKey: String(job.idempotency_key || ""),
       requestId: String(job.request_id || ""),
       errorCode: job.error_code ? String(job.error_code) : null,

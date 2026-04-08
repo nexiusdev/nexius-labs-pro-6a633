@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     const priceId = String(price?.id || "");
     if (!priceId) throw new Error("Airwallex: missing price id");
 
-    const successUrl = new URL("/payment/success", appBase);
+    const successUrl = new URL("/portal/onboarding", appBase);
     successUrl.searchParams.set("subscription", subscriptionId);
 
     const backUrl = new URL("/payment", appBase);

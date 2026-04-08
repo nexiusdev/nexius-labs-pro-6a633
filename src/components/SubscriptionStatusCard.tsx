@@ -78,7 +78,7 @@ export default function SubscriptionStatusCard(props: { subscriptionId: string }
           {data.error.toLowerCase().includes("unauthorized") ? (
             <a
               className="inline-flex items-center justify-center rounded-lg bg-rose-700 px-3 py-2 text-white text-xs font-semibold"
-              href={`/auth?mode=signin&next=${encodeURIComponent(`/payment/success?subscription=${subscriptionId}`)}`}
+              href={`/auth?mode=signin&next=${encodeURIComponent(`/portal/onboarding?subscription=${subscriptionId}`)}`}
             >
               Sign in to view subscription
             </a>

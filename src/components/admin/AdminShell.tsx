@@ -18,7 +18,7 @@ export default function AdminShell(props: { title: string; children: React.React
   return (
     <RoleGuard
       allowedRoles={["super_admin", "ops_admin", "support_admin", "read_only_admin"]}
-      fallbackPath="/account/subscriptions"
+      fallbackPath="/portal/workspace"
     >
       <div className="space-y-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">

@@ -15,7 +15,7 @@ const pages = [
 ];
 
 const accountPages = [
-  { href: "/account/subscriptions", label: "Subscriptions" },
+  { href: "/portal/workspace", label: "Portal" },
   { href: "/account/profile", label: "Profile" },
 ];
 
