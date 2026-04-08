@@ -1,16 +1,16 @@
-import Footer from "@/components/Footer";
-import Navigation from "@/components/Navigation";
 import PortalContextContent from "@/components/portal/PortalContextContent";
-import PortalShell from "@/components/portal/PortalShell";
+import PortalPageFrame from "@/components/portal/PortalPageFrame";
 
 export const metadata = { title: "Context — Nexius Portal" };
 
 export default function Page() {
   return (
-    <>
-      <Navigation />
-      <main className="bg-white min-h-screen pt-28 pb-16"><div className="container-wide max-w-6xl"><PortalShell title="Context Settings"><PortalContextContent /></PortalShell></div></main>
-      <Footer />
-    </>
+    <PortalPageFrame
+      heroTitle="Context"
+      heroDescription="Manage business context that your digital colleagues use for grounded decisions and execution."
+      shellTitle="Context Settings"
+    >
+      <PortalContextContent />
+    </PortalPageFrame>
   );
 }
