@@ -32,6 +32,17 @@ This project is configured to target Supabase project ref `cqqkrheyjtdysclkeuxn`
    - `supabase login`
    - `supabase link --project-ref cqqkrheyjtdysclkeuxn`
 
+## Fulfillment Operations
+
+- Process queued fulfillment jobs:
+  - `npm run worker:fulfillment`
+- Reconcile active paid subscriptions vs entitlements/jobs:
+  - `npm run reconcile:payment-fulfillment`
+  - `npm run reconcile:payment-fulfillment -- --apply`
+- Admin queue UI:
+  - `/admin/fulfillment`
+  - requires authenticated user id listed in `FULFILLMENT_ADMIN_USER_IDS`
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
