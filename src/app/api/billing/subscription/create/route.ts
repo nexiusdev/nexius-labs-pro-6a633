@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getUserIdFromRequest } from "@/lib/auth-server";
-import { roles } from "@/data/roles";
+import { getAllRolesDb } from "@/lib/catalog";
 import { getRolePricing } from "@/lib/pricing";
 import { airwallexCreateBillingCheckoutSubscription, airwallexCreatePrice } from "@/lib/airwallex";
 import { persistSubscriptionSnapshot } from "@/lib/airwallex-webhook";
 
 const db = supabaseAdmin.schema("nexius_os");
 
-function computeMonthlySgd(roleIds: string[]): number {
+async function computeMonthlySgd(roleIds: string[]): Promise<number> {
+  const roles = await getAllRolesDb();
   const byId = new Map(roles.map((r) => [r.id, r] as const));
   let total = 0;
   for (const id of roleIds) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
   // Pricing (server authoritative)
   let monthlyAmount = 0;
   try {
-    monthlyAmount = computeMonthlySgd(roleIds);
+    monthlyAmount = await computeMonthlySgd(roleIds);
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid roles" }, { status: 400 });
   }
