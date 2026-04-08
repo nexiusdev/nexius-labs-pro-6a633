@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import {
   buildFulfillmentCorrelationId,
   buildFulfillmentIdempotencyKey,
+  type PackageSourceSnapshotEntry,
   type PurchaseSnapshot,
 } from "@/lib/purchase-snapshot";
 import { ensureCustomerEntitlements } from "@/lib/entitlements";
@@ -99,6 +100,7 @@ export async function ensureFulfillmentJob(input: EnsureFulfillmentJobInput) {
       source: "airwallex_webhook",
       customerId: input.customerId,
       subscriptionId: input.subscriptionId,
+      packageSources: input.snapshot.packageSources,
     },
     contract_version: input.snapshot.contractVersion,
     tenant_profile: input.snapshot.tenantProfile,
@@ -338,6 +340,11 @@ export async function processFulfillmentJobs(limit = 10) {
         stage: "package_resolved",
       });
 
+      const packageIds = Array.isArray(job.package_ids) ? job.package_ids.map((value: unknown) => String(value)) : [];
+      const packageVersions = Array.isArray(job.package_versions)
+        ? job.package_versions.map((value: unknown) => String(value))
+        : [];
+      const packageSources = await packageSourcesForSubscription(String(job.subscription_id));
       const requestPayload = {
         contractVersion: String(job.contract_version || "v2"),
         customerId: String(job.customer_id),
@@ -346,10 +353,10 @@ export async function processFulfillmentJobs(limit = 10) {
         roleIds: await roleIdsForSubscription(String(job.subscription_id)),
         tenantProfile: "runtime_plus_ui_supabase",
         provisionMode,
-        packageIds: Array.isArray(job.package_ids) ? job.package_ids.map((value: unknown) => String(value)) : [],
-        packageVersions: Array.isArray(job.package_versions)
-          ? job.package_versions.map((value: unknown) => String(value))
-          : [],
+        packageIds,
+        packageVersions,
+        packageSources,
+        packages: buildControlPackages({ packageIds, packageVersions, packageSources }),
       };
 
       await updateJobState({
@@ -509,6 +516,64 @@ async function roleIdsForSubscription(subscriptionId: string): Promise<string[]>
 
   if (error) throw new Error(error.message);
   return Array.isArray(data.role_ids) ? data.role_ids.map((value: unknown) => String(value)) : [];
+}
+
+async function packageSourcesForSubscription(subscriptionId: string): Promise<PackageSourceSnapshotEntry[]> {
+  const { data, error } = await db
+    .from("subscriptions")
+    .select("purchase_snapshot")
+    .eq("id", subscriptionId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  const snapshot =
+    data?.purchase_snapshot && typeof data.purchase_snapshot === "object"
+      ? (data.purchase_snapshot as Record<string, unknown>)
+      : {};
+  if (!Array.isArray(snapshot.packageSources)) return [];
+
+  return snapshot.packageSources
+    .filter((value) => !!value && typeof value === "object")
+    .map((value) => {
+      const item = value as Record<string, unknown>;
+      return {
+        packageId: String(item.packageId || ""),
+        owner: String(item.owner || ""),
+        repo: String(item.repo || ""),
+        ref: String(item.ref || ""),
+        subdir: item.subdir ? String(item.subdir) : null,
+      };
+    })
+    .filter((item) => item.packageId && item.owner && item.repo && item.ref);
+}
+
+function buildControlPackages(params: {
+  packageIds: string[];
+  packageVersions: string[];
+  packageSources: PackageSourceSnapshotEntry[];
+}) {
+  const sourceByPackageId = new Map<string, PackageSourceSnapshotEntry>();
+  for (const source of params.packageSources) {
+    if (!sourceByPackageId.has(source.packageId)) {
+      sourceByPackageId.set(source.packageId, source);
+    }
+  }
+  return params.packageIds.map((packageId, idx) => {
+    const source = sourceByPackageId.get(packageId);
+    return {
+      packageId,
+      version: params.packageVersions[idx] || params.packageVersions[0] || null,
+      source: source
+        ? {
+            owner: source.owner,
+            repo: source.repo,
+            ref: source.ref,
+            subdir: source.subdir || undefined,
+          }
+        : undefined,
+    };
+  });
 }
 
 export async function reconcileEntitlementsForSubscription(params: {

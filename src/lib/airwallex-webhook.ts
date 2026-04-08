@@ -156,6 +156,21 @@ function parseSnapshotFromSubscription(subscription: {
       : Array.isArray(subscription.package_versions)
         ? subscription.package_versions.map((value: unknown) => String(value))
         : [];
+    const packageSources = Array.isArray(snap.packageSources)
+      ? snap.packageSources
+          .filter((value) => !!value && typeof value === "object")
+          .map((value) => {
+            const item = value as Record<string, unknown>;
+            return {
+              packageId: String(item.packageId || ""),
+              owner: String(item.owner || ""),
+              repo: String(item.repo || ""),
+              ref: String(item.ref || ""),
+              subdir: item.subdir ? String(item.subdir) : null,
+            };
+          })
+          .filter((item) => item.packageId && item.owner && item.repo && item.ref)
+      : [];
 
     return {
       contractVersion: "v2",
@@ -164,6 +179,7 @@ function parseSnapshotFromSubscription(subscription: {
       skuCodes,
       packageIds,
       packageVersions,
+      packageSources,
       capturedAt: typeof snap.capturedAt === "string" ? snap.capturedAt : new Date().toISOString(),
     };
   }
@@ -177,6 +193,7 @@ function parseSnapshotFromSubscription(subscription: {
     packageVersions: Array.isArray(subscription.package_versions)
       ? subscription.package_versions.map((value: unknown) => String(value))
       : [],
+    packageSources: [],
     capturedAt: new Date().toISOString(),
   };
 }

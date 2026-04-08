@@ -9,6 +9,18 @@ export type ResolvedSku = {
   packageId: string;
   roleIds: string[];
   packageVersion: string;
+  sourceOwner: string | null;
+  sourceRepo: string | null;
+  sourceRef: string | null;
+  sourceSubdir: string | null;
+};
+
+export type PackageSourceSnapshotEntry = {
+  packageId: string;
+  owner: string;
+  repo: string;
+  ref: string;
+  subdir: string | null;
 };
 
 export type PurchaseSnapshot = {
@@ -17,6 +29,7 @@ export type PurchaseSnapshot = {
   skuCodes: string[];
   packageIds: string[];
   packageVersions: string[];
+  packageSources: PackageSourceSnapshotEntry[];
   roleIds: string[];
   capturedAt: string;
 };
@@ -42,6 +55,10 @@ function buildFallbackFromRoles(roleIds: string[]): ResolvedSku[] {
     packageId,
     roleIds: [roleId],
     packageVersion,
+    sourceOwner: null,
+    sourceRepo: null,
+    sourceRef: null,
+    sourceSubdir: null,
   }));
 }
 
@@ -58,7 +75,7 @@ export async function resolveSkus(params: {
 
   const { data, error } = await db
     .from("sku_registry")
-    .select("sku_code,package_id,role_ids,package_version")
+    .select("sku_code,package_id,role_ids,package_version,source_owner,source_repo,source_ref,source_subdir")
     .in("sku_code", requestedSkuCodes)
     .eq("active", true);
 
@@ -76,6 +93,10 @@ export async function resolveSkus(params: {
       packageId: String(row.package_id || stableFallbackPackageId()),
       roleIds: Array.isArray(row.role_ids) ? row.role_ids.map((value: unknown) => String(value)) : [],
       packageVersion: String(row.package_version || stableFallbackPackageVersion()),
+      sourceOwner: row.source_owner ? String(row.source_owner) : null,
+      sourceRepo: row.source_repo ? String(row.source_repo) : null,
+      sourceRef: row.source_ref ? String(row.source_ref) : null,
+      sourceSubdir: row.source_subdir ? String(row.source_subdir) : null,
     });
   }
 
@@ -88,11 +109,16 @@ export async function resolveSkus(params: {
     }
 
     // Safe fallback keeps checkout operable even before registry is fully seeded.
+    console.warn(`[purchase-snapshot] missing sku_registry mapping for sku=${skuCode}; using fallback package`);
     resolved.push({
       skuCode,
       packageId: stableFallbackPackageId(),
       roleIds: requestedRoleIds,
       packageVersion: stableFallbackPackageVersion(),
+      sourceOwner: null,
+      sourceRepo: null,
+      sourceRef: null,
+      sourceSubdir: null,
     });
   }
 
@@ -109,6 +135,19 @@ export async function buildPurchaseSnapshot(params: {
   const skuCodes = uniq(resolved.map((item) => item.skuCode));
   const packageIds = uniq(resolved.map((item) => item.packageId));
   const packageVersions = uniq(resolved.map((item) => item.packageVersion));
+  const packageSourceByKey = new Map<string, PackageSourceSnapshotEntry>();
+  for (const item of resolved) {
+    if (!item.sourceOwner || !item.sourceRepo || !item.sourceRef) continue;
+    const key = `${item.packageId}|${item.sourceOwner}|${item.sourceRepo}|${item.sourceRef}|${item.sourceSubdir || ""}`;
+    packageSourceByKey.set(key, {
+      packageId: item.packageId,
+      owner: item.sourceOwner,
+      repo: item.sourceRepo,
+      ref: item.sourceRef,
+      subdir: item.sourceSubdir || null,
+    });
+  }
+  const packageSources = [...packageSourceByKey.values()];
 
   return {
     contractVersion: "v2",
@@ -116,6 +155,7 @@ export async function buildPurchaseSnapshot(params: {
     skuCodes,
     packageIds,
     packageVersions,
+    packageSources,
     roleIds,
     capturedAt: new Date().toISOString(),
   };

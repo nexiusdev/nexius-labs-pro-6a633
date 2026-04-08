@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
       skuCodes?: unknown[];
       packageIds?: unknown[];
       packageVersions?: unknown[];
+      packageSources?: unknown[];
       roleIds?: unknown[];
       capturedAt?: string;
     })
@@ -159,6 +160,21 @@ export async function POST(req: NextRequest) {
         : [],
       packageVersions: Array.isArray(snapshot.packageVersions)
         ? snapshot.packageVersions.map((value: unknown) => String(value))
+        : [],
+      packageSources: Array.isArray(snapshot.packageSources)
+        ? snapshot.packageSources
+            .filter((value) => !!value && typeof value === "object")
+            .map((value) => {
+              const item = value as Record<string, unknown>;
+              return {
+                packageId: String(item.packageId || ""),
+                owner: String(item.owner || ""),
+                repo: String(item.repo || ""),
+                ref: String(item.ref || ""),
+                subdir: item.subdir ? String(item.subdir) : null,
+              };
+            })
+            .filter((item) => item.packageId && item.owner && item.repo && item.ref)
         : [],
       capturedAt: typeof snapshot.capturedAt === "string" ? snapshot.capturedAt : new Date().toISOString(),
     },
