@@ -30,6 +30,15 @@ type OnboardingStatusResponse = {
   error?: string;
 };
 
+type LifecyclePackage = {
+  package_id: string;
+  state?: string;
+  status?: string;
+  stage?: string;
+  activation?: Record<string, unknown>;
+  health_summary?: { status?: string } | Record<string, unknown>;
+};
+
 export default function OnboardingStatusCard(props: {
   subscriptionId: string;
   roleIds: string[];
@@ -51,7 +60,7 @@ export default function OnboardingStatusCard(props: {
       setLoading(true);
       try {
         const headers = await getAuthHeaders();
-        const res = await fetch(`/api/onboarding/telegram?subscriptionId=${encodeURIComponent(subscriptionId)}`, {
+        const res = await fetch(`/api/fulfillment/install?subscriptionId=${encodeURIComponent(subscriptionId)}`, {
           headers,
           cache: "no-store",
         });
@@ -77,6 +86,9 @@ export default function OnboardingStatusCard(props: {
 
   const job = data?.onboardingJob;
   const timeline = data?.timeline || [];
+  const lifecyclePackages = Array.isArray(job?.responsePayload?.packages)
+    ? (job?.responsePayload?.packages as unknown[]).filter((item) => !!item && typeof item === "object") as LifecyclePackage[]
+    : [];
 
   async function createOrRefreshJob(retry: boolean) {
     if (retry) setRetrying(true);
@@ -84,7 +96,7 @@ export default function OnboardingStatusCard(props: {
 
     try {
       const headers = await getAuthHeaders();
-      await fetch("/api/onboarding/telegram", {
+      await fetch("/api/fulfillment/install", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -161,6 +173,28 @@ export default function OnboardingStatusCard(props: {
                   <span className="text-slate-500">{item.createdAt || "-"}</span>
                 </div>
                 <div className="mt-1 text-slate-600">State: {item.state}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {lifecyclePackages.length ? (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+          <div className="text-sm font-semibold text-slate-900">Package Status</div>
+          <ul className="mt-3 space-y-2 text-sm">
+            {lifecyclePackages.map((pkg, idx) => (
+              <li key={`${pkg.package_id || "pkg"}-${idx}`} className="rounded-lg border border-slate-200 px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-slate-900">{pkg.package_id || "-"}</span>
+                  <span className="text-slate-600">{pkg.state || pkg.status || "-"}</span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">stage: {pkg.stage || "-"}</div>
+                <div className="mt-1 text-xs text-slate-500">
+                  health: {typeof pkg.health_summary === "object" && pkg.health_summary
+                    ? String((pkg.health_summary as { status?: string }).status || "-")
+                    : "-"}
+                </div>
               </li>
             ))}
           </ul>

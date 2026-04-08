@@ -14,6 +14,8 @@ type Job = {
   error_stage: string | null;
   retry_count: number;
   updated_at: string;
+  request_payload?: Record<string, unknown>;
+  response_payload?: Record<string, unknown>;
 };
 
 type JobsResponse = {
@@ -115,6 +117,52 @@ export default function FulfillmentQueue() {
     }
   }
 
+  async function packageRetry(jobId: string, packageId: string) {
+    setBusyJob(jobId);
+    setError(null);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/fulfillment/package-retry", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...headers,
+        },
+        body: JSON.stringify({ jobId, packageId, retryFromStep: "package.activate" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) throw new Error(json.error || `Package retry failed (${res.status})`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Package retry failed");
+    } finally {
+      setBusyJob(null);
+    }
+  }
+
+  async function packageRollback(jobId: string, packageId: string) {
+    setBusyJob(jobId);
+    setError(null);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/fulfillment/package-rollback", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...headers,
+        },
+        body: JSON.stringify({ jobId, packageId }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) throw new Error(json.error || `Package rollback failed (${res.status})`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Package rollback failed");
+    } finally {
+      setBusyJob(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 space-y-3">
@@ -213,6 +261,46 @@ export default function FulfillmentQueue() {
                 {job.error_message ? (
                   <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-800">
                     {job.error_message}
+                  </div>
+                ) : null}
+
+                {Array.isArray(job.response_payload?.packages) && job.response_payload?.packages.length ? (
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div className="font-semibold text-slate-900 mb-2">Package Lifecycle</div>
+                    <div className="space-y-2">
+                      {(job.response_payload?.packages as Array<Record<string, unknown>>).map((pkg) => {
+                        const packageId = String(pkg.package_id || "");
+                        const state = String(pkg.state || pkg.status || "-");
+                        const stage = String(pkg.stage || "-");
+                        return (
+                          <div key={`${job.id}-${packageId}`} className="rounded border border-slate-200 bg-white px-3 py-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-mono text-slate-900">{packageId}</span>
+                              <span className="text-slate-600">{state}</span>
+                            </div>
+                            <div className="mt-1 text-xs text-slate-500">stage: {stage}</div>
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => packageRetry(job.id, packageId)}
+                                disabled={busyJob === job.id}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 disabled:opacity-60"
+                              >
+                                Retry Package
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => packageRollback(job.id, packageId)}
+                                disabled={busyJob === job.id}
+                                className="inline-flex items-center justify-center rounded-lg border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-700 disabled:opacity-60"
+                              >
+                                Rollback Package
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : null}
               </div>

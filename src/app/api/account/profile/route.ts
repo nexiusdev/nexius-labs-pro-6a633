@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { resolveAppRole } from "@/lib/rbac";
 
 function getBearerToken(req: NextRequest) {
   const auth = req.headers.get("authorization") || "";
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
     ok: true,
     profile: {
       email: user.email || "",
+      appRole: resolveAppRole(user),
       fullName: typeof metadata.full_name === "string" ? metadata.full_name : "",
       company: typeof metadata.company === "string" ? metadata.company : "",
       telegramUserId: typeof metadata.telegram_user_id === "string" ? metadata.telegram_user_id : "",
@@ -85,6 +87,7 @@ export async function PATCH(req: NextRequest) {
     ok: true,
     profile: {
       email: data.user.email || "",
+      appRole: resolveAppRole(data.user),
       fullName,
       company,
       telegramUserId,

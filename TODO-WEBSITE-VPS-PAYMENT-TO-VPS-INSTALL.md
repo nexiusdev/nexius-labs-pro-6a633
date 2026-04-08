@@ -72,3 +72,18 @@ Target repo: `/root/nexius-labs-pro-6a633`
 - Targeted lint over all touched files passes.
 - Full-project `npm run lint` still reports pre-existing repo-wide lint errors outside this PRD delta.
 - `npm run build` passes when required Supabase env variables are present in the shell.
+- Added v2 naming-compatible API route alias:
+  - `/api/fulfillment/install` (backward compatible with `/api/onboarding/telegram` implementation)
+- Added continuous worker loop entrypoint for operations:
+  - `scripts/fulfillment-worker-loop.ts`
+  - `npm run worker:fulfillment:loop`
+
+## 4. Package Lifecycle V1 Integration Notes
+- Added admin package lifecycle action APIs:
+  - `POST /api/admin/fulfillment/package-retry`
+  - `POST /api/admin/fulfillment/package-rollback`
+- Admin fulfillment queue now renders per-package lifecycle status and package-level retry/rollback actions.
+- Customer onboarding status now renders package lifecycle details from control-plane response payload:
+  - package `state/status`
+  - package `stage`
+  - package health summary

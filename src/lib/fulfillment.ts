@@ -37,6 +37,13 @@ function controlConfig() {
   return { endpoint, token };
 }
 
+function controlBaseFromEndpoint(endpoint: string) {
+  const trimmed = endpoint.trim();
+  if (!trimmed) return "";
+  if (trimmed.endsWith("/v1/tenants/onboard")) return trimmed.slice(0, -"/v1/tenants/onboard".length);
+  return trimmed.replace(/\/$/, "");
+}
+
 export function buildCustomerIdFromSubscription(subscriptionId: string) {
   const compact = subscriptionId.replace(/-/g, "").toLowerCase().slice(0, 8);
   return `customer-${compact}`;
@@ -208,9 +215,26 @@ async function resolveProvisionMode(customerId: string): Promise<"assign_existin
 }
 
 function normalizeControlError(payload: Record<string, unknown>, status: number) {
+  const nestedError =
+    (payload.responsePayload && typeof payload.responsePayload === "object"
+      ? (payload.responsePayload as Record<string, unknown>).error
+      : null) ||
+    (payload.response_payload && typeof payload.response_payload === "object"
+      ? (payload.response_payload as Record<string, unknown>).error
+      : null);
+  const nestedErrorCode =
+    (payload.responsePayload && typeof payload.responsePayload === "object"
+      ? (payload.responsePayload as Record<string, unknown>).error_code
+      : null) ||
+    (payload.response_payload && typeof payload.response_payload === "object"
+      ? (payload.response_payload as Record<string, unknown>).error_code
+      : null);
   const code =
     (typeof payload.errorCode === "string" && payload.errorCode) ||
+    (typeof payload.error_code === "string" && payload.error_code) ||
     (typeof payload.code === "string" && payload.code) ||
+    (typeof nestedErrorCode === "string" && nestedErrorCode) ||
+    (typeof nestedError === "string" && nestedError) ||
     (typeof payload.error === "string" && payload.error) ||
     "NEXIUS_CONTROL_ONBOARDING_HTTP_ERROR";
 
@@ -242,14 +266,14 @@ async function dispatchToControl(params: {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await undiciFetch(cfg.endpoint, {
+    const response = await fetch(cfg.endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",
         Authorization: `Bearer ${cfg.token}`,
         "Idempotency-Key": params.idempotencyKey,
         "X-Request-Id": params.correlationId,
-        "X-Onboarding-Job-UUID": params.onboardingJobId,
+        "X-Onboarding-Job-Id": params.onboardingJobId,
       },
       body: JSON.stringify(params.payload),
       signal: controller.signal,
@@ -401,6 +425,79 @@ export async function processFulfillmentJobs(limit = 10) {
     processed: results.length,
     results,
   };
+}
+
+export async function controlPackageRetry(params: {
+  payload: Record<string, unknown>;
+  retryFromStep: string;
+  idempotencyKey?: string;
+}) {
+  const cfg = controlConfig();
+  if (!cfg.endpoint || !cfg.token) {
+    throw new Error("Missing control endpoint/token configuration");
+  }
+  const base = controlBaseFromEndpoint(cfg.endpoint);
+  const url = `${base}/v1/tenants/onboard/packages/retry`;
+  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${cfg.token}`,
+      },
+      body: JSON.stringify({
+        payload: params.payload,
+        retryFromStep: params.retryFromStep,
+        idempotencyKey: params.idempotencyKey || null,
+      }),
+      signal: controller.signal,
+    });
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const normalized = normalizeControlError(body, res.status);
+      throw new Error(`${normalized.code}: ${normalized.message}`);
+    }
+    return body;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function controlPackageRollback(params: { customerId: string; packageId: string }) {
+  const cfg = controlConfig();
+  if (!cfg.endpoint || !cfg.token) {
+    throw new Error("Missing control endpoint/token configuration");
+  }
+  const base = controlBaseFromEndpoint(cfg.endpoint);
+  const url = `${base}/v1/tenants/onboard/packages/rollback`;
+  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${cfg.token}`,
+      },
+      body: JSON.stringify({
+        customerId: params.customerId,
+        packageId: params.packageId,
+      }),
+      signal: controller.signal,
+    });
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const normalized = normalizeControlError(body, res.status);
+      throw new Error(`${normalized.code}: ${normalized.message}`);
+    }
+    return body;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function roleIdsForSubscription(subscriptionId: string): Promise<string[]> {

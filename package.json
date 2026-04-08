@@ -11,6 +11,7 @@
     "seed:telegram-bot-pool": "tsx scripts/seed-telegram-bot-pool.ts",
     "reconcile:vps-a-onboarding": "tsx scripts/reconcile-vps-a-onboarding.ts",
     "worker:fulfillment": "tsx scripts/fulfillment-worker.ts",
+    "worker:fulfillment:loop": "tsx scripts/fulfillment-worker-loop.ts",
     "reconcile:payment-fulfillment": "tsx scripts/reconcile-payment-fulfillment.ts"
   },
   "dependencies": {
