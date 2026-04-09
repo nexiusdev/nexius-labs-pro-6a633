@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAuthHeaders } from "@/lib/auth-client";
+import { actionableErrorReason, formatFulfillmentStage } from "@/lib/fulfillment-status";
 
 type OnboardingTimelineItem = {
   state: string;
@@ -173,7 +174,7 @@ export default function OnboardingStatusCard(props: {
             {timeline.map((item, idx) => (
               <li key={`${item.stage || item.state}-${idx}`} className="rounded-lg border border-slate-200 px-3 py-2">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-slate-900">{item.stage || item.state}</span>
+                  <span className="font-mono text-slate-900">{formatFulfillmentStage(item.stage || item.state)}</span>
                   <span className="text-slate-500">{item.createdAt || "-"}</span>
                 </div>
                 <div className="mt-1 text-slate-600">State: {item.state}</div>
@@ -208,13 +209,9 @@ export default function OnboardingStatusCard(props: {
       {job.errorMessage ? (
         <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
           {job.errorCode ? <div className="font-semibold">{job.errorCode}</div> : null}
-          {job.errorStage ? <div className="font-mono text-xs mb-1">stage: {job.errorStage}</div> : null}
+          {job.errorStage ? <div className="font-mono text-xs mb-1">stage: {formatFulfillmentStage(job.errorStage)}</div> : null}
           <div>{job.errorMessage}</div>
-          {(job.errorCode === "TENANT_ASSIGNMENT_NOT_FOUND" || job.errorCode === "TENANT_ALREADY_ASSIGNED") ? (
-            <div className="mt-2 text-xs">
-              This requires operator action in admin fulfillment queue before retry.
-            </div>
-          ) : null}
+          <div className="mt-2 text-xs">{actionableErrorReason(job.errorCode)}</div>
         </div>
       ) : null}
 

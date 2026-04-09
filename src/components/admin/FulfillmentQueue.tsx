@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { getAuthHeaders } from "@/lib/auth-client";
+import { actionableErrorReason, formatFulfillmentStage } from "@/lib/fulfillment-status";
 
 type Job = {
   id: string;
@@ -254,13 +255,14 @@ export default function FulfillmentQueue() {
                   <div>subscription: <span className="font-mono">{job.subscription_id}</span></div>
                   <div>retry_count: <span className="font-mono">{job.retry_count}</span></div>
                   <div>updated_at: <span className="font-mono">{job.updated_at}</span></div>
-                  <div>error_stage: <span className="font-mono">{job.error_stage || "-"}</span></div>
+                  <div>error_stage: <span className="font-mono">{formatFulfillmentStage(job.error_stage)}</span></div>
                   <div>error_code: <span className="font-mono">{job.error_code || "-"}</span></div>
                 </div>
 
                 {job.error_message ? (
                   <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-800">
                     {job.error_message}
+                    <div className="mt-1 text-xs">{actionableErrorReason(job.error_code)}</div>
                   </div>
                 ) : null}
 

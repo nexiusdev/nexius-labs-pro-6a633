@@ -8,6 +8,8 @@ Keep payment-to-install fulfillment processing active continuously on the websit
 
 - One-shot worker:
   - `npm run worker:fulfillment`
+- One-shot stuck-job reconciliation:
+  - `npm run worker:fulfillment:reconcile-stuck`
 - Continuous loop worker:
   - `npm run worker:fulfillment:loop`
 
@@ -15,7 +17,17 @@ Keep payment-to-install fulfillment processing active continuously on the websit
 
 - `FULFILLMENT_WORKER_INTERVAL_MS` (default `15000`)
 - `FULFILLMENT_WORKER_BATCH_SIZE` (default `10`)
+- `FULFILLMENT_RECONCILE_STUCK` (default `true`)
+- `FULFILLMENT_STUCK_JOB_MINUTES` (default `30`)
+- `FULFILLMENT_STUCK_RECONCILE_LIMIT` (default `10`)
+- `NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS` (default `60000`)
+- `NEXIUS_CONTROL_DISPATCH_MAX_ATTEMPTS` (default `2`)
+- `NEXIUS_CONTROL_DISPATCH_BACKOFF_MS` (default `500`)
 - Existing Supabase + control-plane env vars used by `src/lib/fulfillment.ts`
+
+Required control-plane env vars:
+- `NEXIUS_CONTROL_BASE_URL` (or `NEXIUS_CONTROL_ONBOARDING_URL`)
+- `NEXIUS_CONTROL_ONBOARDING_TOKEN`
 
 ## Recommended systemd unit
 
@@ -51,4 +63,3 @@ WantedBy=multi-user.target
 ## Alerting recommendation
 
 - Alert if `onboarding_jobs` in `payment_confirmed|package_resolved|failed` with `next_retry_at <= now()` grows continuously for 10+ minutes.
-

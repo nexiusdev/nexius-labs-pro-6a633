@@ -11,6 +11,7 @@ const db = supabaseAdmin.schema("nexius_os");
 
 const TERMINAL_STATES = new Set(["completed"]);
 const RETRYABLE_FAILURE_STATES = new Set(["failed"]);
+const STRICT_ERROR_CODES = new Set(["TENANT_ASSIGNMENT_NOT_FOUND", "TENANT_ALREADY_ASSIGNED"]);
 
 export type FulfillmentState =
   | "payment_confirmed"
@@ -28,6 +29,26 @@ export type EnsureFulfillmentJobInput = {
   snapshot: PurchaseSnapshot;
 };
 
+export type ControlDispatchResponse = {
+  ok: boolean;
+  status: number;
+  body: Record<string, unknown>;
+};
+
+export type ControlDispatchAttemptLog = {
+  attemptLabel: "create_new" | "assign_existing";
+  provisionMode: "create_new" | "assign_existing";
+  idempotencyKey: string;
+  correlationId: string;
+  httpStatus: number;
+  requestId: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  transportAttempts: number;
+  responseBody: Record<string, unknown>;
+  payload: Record<string, unknown>;
+};
+
 function controlConfig() {
   const token = (process.env.NEXIUS_CONTROL_ONBOARDING_TOKEN || "").trim();
 
@@ -38,11 +59,59 @@ function controlConfig() {
   return { endpoint, token };
 }
 
+export function validateControlEnv() {
+  const explicitEndpoint = (process.env.NEXIUS_CONTROL_ONBOARDING_URL || "").trim();
+  const baseUrl = (process.env.NEXIUS_CONTROL_BASE_URL || "").trim();
+  const token = (process.env.NEXIUS_CONTROL_ONBOARDING_TOKEN || "").trim();
+
+  const missing: string[] = [];
+  if (!explicitEndpoint && !baseUrl) {
+    missing.push("NEXIUS_CONTROL_BASE_URL or NEXIUS_CONTROL_ONBOARDING_URL");
+  }
+  if (!token) {
+    missing.push("NEXIUS_CONTROL_ONBOARDING_TOKEN");
+  }
+
+  return {
+    ok: missing.length === 0,
+    missing,
+  };
+}
+
 function controlBaseFromEndpoint(endpoint: string) {
   const trimmed = endpoint.trim();
   if (!trimmed) return "";
   if (trimmed.endsWith("/v1/tenants/onboard")) return trimmed.slice(0, -"/v1/tenants/onboard".length);
   return trimmed.replace(/\/$/, "");
+}
+
+function normalizeSubscriptionForKey(subscriptionId: string) {
+  return subscriptionId.replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
+export function buildAssignExistingIdempotencyKey(subscriptionId: string) {
+  return `fulfill-sub-${normalizeSubscriptionForKey(subscriptionId)}-assign`;
+}
+
+function controlTimeoutMs() {
+  return Math.max(1_000, Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000));
+}
+
+function controlDispatchMaxAttempts() {
+  return Math.min(5, Math.max(1, Number(process.env.NEXIUS_CONTROL_DISPATCH_MAX_ATTEMPTS || 2)));
+}
+
+function controlDispatchBackoffMs() {
+  return Math.min(10_000, Math.max(100, Number(process.env.NEXIUS_CONTROL_DISPATCH_BACKOFF_MS || 500)));
+}
+
+function isAbortLikeMessage(message: string) {
+  const lower = message.toLowerCase();
+  return lower.includes("aborted") || lower.includes("abort") || lower.includes("timeout");
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function buildCustomerIdFromSubscription(subscriptionId: string) {
@@ -263,7 +332,7 @@ async function dispatchToControl(params: {
     };
   }
 
-  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000);
+  const timeoutMs = controlTimeoutMs();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -285,17 +354,145 @@ async function dispatchToControl(params: {
     return { ok: response.ok, status: response.status, body };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const timedOut = isAbortLikeMessage(message);
     return {
       ok: false,
       status: 0,
       body: {
-        errorCode: "NEXIUS_CONTROL_ONBOARDING_NETWORK_ERROR",
+        errorCode: timedOut ? "NEXIUS_CONTROL_ONBOARDING_TIMEOUT" : "NEXIUS_CONTROL_ONBOARDING_NETWORK_ERROR",
         message,
+        timeoutMs,
       },
     };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function isRetryableTransportFailure(status: number, code: string) {
+  return status === 0 || code === "NEXIUS_CONTROL_ONBOARDING_NETWORK_ERROR" || code === "NEXIUS_CONTROL_ONBOARDING_TIMEOUT";
+}
+
+async function dispatchWithRetryGuard(params: {
+  onboardingJobId: string;
+  idempotencyKey: string;
+  correlationId: string;
+  payload: Record<string, unknown>;
+}) {
+  const maxAttempts = controlDispatchMaxAttempts();
+  let lastResponse: ControlDispatchResponse = {
+    ok: false,
+    status: 0,
+    body: { errorCode: "NEXIUS_CONTROL_ONBOARDING_NETWORK_ERROR", message: "No dispatch attempts executed" },
+  };
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await dispatchToControl(params);
+    lastResponse = response;
+    const normalized = normalizeControlError(response.body, response.status);
+    const retryable = !response.ok && isRetryableTransportFailure(response.status, normalized.code);
+
+    if (!retryable || attempt >= maxAttempts) {
+      return {
+        response,
+        transportAttempts: attempt,
+      };
+    }
+
+    await sleep(controlDispatchBackoffMs());
+  }
+
+  return {
+    response: lastResponse,
+    transportAttempts: maxAttempts,
+  };
+}
+
+function controlRequestIdFromBody(body: Record<string, unknown>) {
+  return typeof body.request_id === "string"
+    ? body.request_id
+    : typeof body.requestId === "string"
+      ? body.requestId
+      : null;
+}
+
+export async function dispatchControlWithAssignFallback(params: {
+  onboardingJobId: string;
+  subscriptionId: string;
+  correlationId: string;
+  baseIdempotencyKey: string;
+  initialProvisionMode: "create_new" | "assign_existing";
+  requestPayload: Record<string, unknown>;
+  dispatchFn?: (args: {
+    onboardingJobId: string;
+    idempotencyKey: string;
+    correlationId: string;
+    payload: Record<string, unknown>;
+  }) => Promise<{ response: ControlDispatchResponse; transportAttempts: number }>;
+}) {
+  const dispatchFn = params.dispatchFn || dispatchWithRetryGuard;
+  const attempts: ControlDispatchAttemptLog[] = [];
+
+  const createPayload = { ...params.requestPayload, provisionMode: params.initialProvisionMode };
+  const assignPayload = { ...params.requestPayload, provisionMode: "assign_existing" };
+  const initialLabel: "create_new" | "assign_existing" = params.initialProvisionMode;
+  const attemptPlan: Array<{ label: "create_new" | "assign_existing"; payload: Record<string, unknown>; idempotencyKey: string }> = [
+    {
+      label: initialLabel,
+      payload: createPayload,
+      idempotencyKey: params.baseIdempotencyKey,
+    },
+  ];
+
+  for (const attempt of attemptPlan) {
+    const { response, transportAttempts } = await dispatchFn({
+      onboardingJobId: params.onboardingJobId,
+      idempotencyKey: attempt.idempotencyKey,
+      correlationId: params.correlationId,
+      payload: attempt.payload,
+    });
+    const normalized = normalizeControlError(response.body, response.status);
+    const attemptLog: ControlDispatchAttemptLog = {
+      attemptLabel: attempt.label,
+      provisionMode: attempt.label,
+      idempotencyKey: attempt.idempotencyKey,
+      correlationId: params.correlationId,
+      httpStatus: response.status,
+      requestId: controlRequestIdFromBody(response.body),
+      errorCode: response.ok ? null : normalized.code,
+      errorMessage: response.ok ? null : normalized.message,
+      transportAttempts,
+      responseBody: response.body,
+      payload: attempt.payload,
+    };
+    attempts.push(attemptLog);
+
+    if (response.ok) {
+      return {
+        final: attemptLog,
+        attempts,
+        fallbackUsed: attempt.label === "assign_existing",
+      };
+    }
+
+    const shouldFallback =
+      attempt.label === "create_new" &&
+      normalized.code === "TENANT_ALREADY_ASSIGNED";
+
+    if (shouldFallback) {
+      attemptPlan.push({
+        label: "assign_existing",
+        payload: assignPayload,
+        idempotencyKey: buildAssignExistingIdempotencyKey(params.subscriptionId),
+      });
+    }
+  }
+
+  return {
+    final: attempts[attempts.length - 1],
+    attempts,
+    fallbackUsed: attempts.some((attempt) => attempt.attemptLabel === "assign_existing"),
+  };
 }
 
 export async function processFulfillmentJobs(limit = 10) {
@@ -345,18 +542,21 @@ export async function processFulfillmentJobs(limit = 10) {
         ? job.package_versions.map((value: unknown) => String(value))
         : [];
       const packageSources = await packageSourcesForSubscription(String(job.subscription_id));
-      const requestPayload = {
+      const requestPayloadBase = {
         contractVersion: String(job.contract_version || "v2"),
         customerId: String(job.customer_id),
         fullName: `Customer ${String(job.customer_id)}`,
         subscriptionId: String(job.subscription_id),
         roleIds: await roleIdsForSubscription(String(job.subscription_id)),
         tenantProfile: "runtime_plus_ui_supabase",
-        provisionMode,
         packageIds,
         packageVersions,
         packageSources,
         packages: buildControlPackages({ packageIds, packageVersions, packageSources }),
+      };
+      const requestPayload = {
+        ...requestPayloadBase,
+        provisionMode,
       };
 
       await updateJobState({
@@ -367,16 +567,44 @@ export async function processFulfillmentJobs(limit = 10) {
         requestPayload,
       });
 
-      const dispatch = await dispatchToControl({
+      const dispatchResult = await dispatchControlWithAssignFallback({
         onboardingJobId,
-        idempotencyKey: String(job.idempotency_key || buildFulfillmentIdempotencyKey(String(job.subscription_id))),
+        subscriptionId: String(job.subscription_id),
+        baseIdempotencyKey: String(job.idempotency_key || buildFulfillmentIdempotencyKey(String(job.subscription_id))),
         correlationId: String(job.correlation_id || buildFulfillmentCorrelationId()),
-        payload: requestPayload,
+        initialProvisionMode: provisionMode,
+        requestPayload: requestPayloadBase,
       });
+      const dispatchAttempts = dispatchResult.attempts;
+      const finalAttempt = dispatchResult.final;
+      const finalDispatch: ControlDispatchResponse = {
+        ok: !finalAttempt.errorCode,
+        status: finalAttempt.httpStatus,
+        body: finalAttempt.responseBody || {},
+      };
 
-      if (!dispatch.ok) {
-        const err = normalizeControlError(dispatch.body, dispatch.status);
-        const strictErrorCodes = new Set(["TENANT_ASSIGNMENT_NOT_FOUND", "TENANT_ALREADY_ASSIGNED"]);
+      for (const attemptLog of dispatchAttempts) {
+        await recordJobEvent({
+          onboardingJobId,
+          state: "tenant_request_sent",
+          stage: "control_dispatch_attempt",
+          detail: {
+            attemptLabel: attemptLog.attemptLabel,
+            provisionMode: attemptLog.provisionMode,
+            idempotencyKey: attemptLog.idempotencyKey,
+            correlationId: attemptLog.correlationId,
+            request_id: attemptLog.requestId,
+            http_status: attemptLog.httpStatus,
+            error_code: attemptLog.errorCode,
+            error_message: attemptLog.errorMessage,
+            transportAttempts: attemptLog.transportAttempts,
+          },
+          actor: "system:fulfillment_worker",
+        }).catch(() => undefined);
+      }
+
+      if (!finalDispatch.ok) {
+        const err = normalizeControlError(finalDispatch.body, finalDispatch.status);
 
         const nextState: FulfillmentState = "failed";
         await updateJobState({
@@ -384,13 +612,27 @@ export async function processFulfillmentJobs(limit = 10) {
           nextState,
           actor: "system:fulfillment_worker",
           stage: "control_dispatch",
-          requestPayload,
-          responsePayload: dispatch.body,
+          requestPayload: finalAttempt.payload,
+          responsePayload: {
+            ...(finalDispatch.body || {}),
+            controlDispatch: {
+              attempts: dispatchAttempts.map((attempt) => ({
+                attemptLabel: attempt.attemptLabel,
+                provisionMode: attempt.provisionMode,
+                idempotencyKey: attempt.idempotencyKey,
+                request_id: attempt.requestId,
+                http_status: attempt.httpStatus,
+                error_code: attempt.errorCode,
+                error_message: attempt.errorMessage,
+                transportAttempts: attempt.transportAttempts,
+              })),
+            },
+          },
           errorCode: err.code,
           errorMessage: err.message,
         });
 
-        if (!strictErrorCodes.has(err.code)) {
+        if (!STRICT_ERROR_CODES.has(err.code)) {
           await incrementRetryCount(onboardingJobId);
         }
 
@@ -398,7 +640,7 @@ export async function processFulfillmentJobs(limit = 10) {
         continue;
       }
 
-      const controlState = String(dispatch.body.state || dispatch.body.status || "in_progress").toLowerCase();
+      const controlState = String(finalDispatch.body.state || finalDispatch.body.status || "in_progress").toLowerCase();
       const nextState: FulfillmentState = controlState === "completed" ? "completed" : "in_progress";
 
       await updateJobState({
@@ -406,8 +648,22 @@ export async function processFulfillmentJobs(limit = 10) {
         nextState,
         actor: "system:fulfillment_worker",
         stage: "control_response",
-        requestPayload,
-        responsePayload: dispatch.body,
+        requestPayload: finalAttempt.payload,
+        responsePayload: {
+          ...(finalDispatch.body || {}),
+          controlDispatch: {
+            attempts: dispatchAttempts.map((attempt) => ({
+              attemptLabel: attempt.attemptLabel,
+              provisionMode: attempt.provisionMode,
+              idempotencyKey: attempt.idempotencyKey,
+              request_id: attempt.requestId,
+              http_status: attempt.httpStatus,
+              error_code: attempt.errorCode,
+              error_message: attempt.errorMessage,
+              transportAttempts: attempt.transportAttempts,
+            })),
+          },
+        },
       });
 
       results.push({ onboardingJobId, state: nextState });
@@ -445,7 +701,7 @@ export async function controlPackageRetry(params: {
   }
   const base = controlBaseFromEndpoint(cfg.endpoint);
   const url = `${base}/v1/tenants/onboard/packages/retry`;
-  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000);
+  const timeoutMs = controlTimeoutMs();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -480,7 +736,7 @@ export async function controlPackageRollback(params: { customerId: string; packa
   }
   const base = controlBaseFromEndpoint(cfg.endpoint);
   const url = `${base}/v1/tenants/onboard/packages/rollback`;
-  const timeoutMs = Number(process.env.NEXIUS_CONTROL_ONBOARDING_TIMEOUT_MS || 60_000);
+  const timeoutMs = controlTimeoutMs();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -548,7 +804,7 @@ async function packageSourcesForSubscription(subscriptionId: string): Promise<Pa
     .filter((item) => item.packageId && item.owner && item.repo && item.ref);
 }
 
-function buildControlPackages(params: {
+export function buildControlPackages(params: {
   packageIds: string[];
   packageVersions: string[];
   packageSources: PackageSourceSnapshotEntry[];
@@ -564,14 +820,12 @@ function buildControlPackages(params: {
     return {
       packageId,
       version: params.packageVersions[idx] || params.packageVersions[0] || null,
-      source: source
-        ? {
-            owner: source.owner,
-            repo: source.repo,
-            ref: source.ref,
-            subdir: source.subdir || undefined,
-          }
-        : undefined,
+      source: {
+        owner: source?.owner || null,
+        repo: source?.repo || null,
+        ref: source?.ref || null,
+        subdir: source?.subdir || null,
+      },
     };
   });
 }
@@ -592,4 +846,47 @@ export async function reconcileEntitlementsForSubscription(params: {
     contractVersion: params.snapshot.contractVersion,
     actor: "system:fulfillment_reconcile",
   });
+}
+
+export async function reconcileStuckInProgressJobs(limit = 10) {
+  const staleMinutes = Math.min(1_440, Math.max(1, Number(process.env.FULFILLMENT_STUCK_JOB_MINUTES || 30)));
+  const thresholdIso = new Date(Date.now() - staleMinutes * 60_000).toISOString();
+
+  const { data, error } = await db
+    .from("onboarding_jobs")
+    .select("id,state,retry_count,updated_at")
+    .in("state", ["in_progress", "tenant_request_sent"])
+    .lt("updated_at", thresholdIso)
+    .order("updated_at", { ascending: true })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+
+  const reconciled: Array<{ onboardingJobId: string; previousState: string; nextState: string }> = [];
+
+  for (const row of data || []) {
+    const onboardingJobId = String(row.id);
+    const previousState = String(row.state || "in_progress");
+    await updateJobState({
+      onboardingJobId,
+      nextState: "failed",
+      actor: "system:stuck_reconcile",
+      stage: "stuck_reconcile",
+      errorCode: "CONTROL_DISPATCH_STUCK_TIMEOUT",
+      errorMessage: `Job exceeded ${staleMinutes} minutes in ${previousState}`,
+      responsePayload: {
+        stuckThresholdMinutes: staleMinutes,
+        reconciledAt: new Date().toISOString(),
+      },
+    });
+
+    await incrementRetryCount(onboardingJobId).catch(() => undefined);
+    reconciled.push({ onboardingJobId, previousState, nextState: "failed" });
+  }
+
+  return {
+    processed: reconciled.length,
+    staleMinutes,
+    reconciled,
+  };
 }

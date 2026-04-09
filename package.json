@@ -12,7 +12,9 @@
     "reconcile:vps-a-onboarding": "tsx scripts/reconcile-vps-a-onboarding.ts",
     "worker:fulfillment": "tsx scripts/fulfillment-worker.ts",
     "worker:fulfillment:loop": "tsx scripts/fulfillment-worker-loop.ts",
-    "reconcile:payment-fulfillment": "tsx scripts/reconcile-payment-fulfillment.ts"
+    "worker:fulfillment:reconcile-stuck": "tsx scripts/reconcile-stuck-onboarding-jobs.ts",
+    "reconcile:payment-fulfillment": "tsx scripts/reconcile-payment-fulfillment.ts",
+    "test:integration:fulfillment": "tsx --test tests/integration/fulfillment-fallback.integration.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
