@@ -512,142 +512,114 @@ export async function processFulfillmentJobs(limit = 10) {
 
   for (const job of jobs || []) {
     if (results.length >= limit) break;
+    const result = await processFulfillmentJob(job as Record<string, unknown>, nowMs);
+    if (result) results.push(result);
+  }
 
-    const nextRetryAt = job.next_retry_at ? Date.parse(String(job.next_retry_at)) : null;
-    if (nextRetryAt && Number.isFinite(nextRetryAt) && nextRetryAt > nowMs) {
-      continue;
+  return {
+    processed: results.length,
+    results,
+  };
+}
+
+async function processFulfillmentJob(job: Record<string, unknown>, nowMs = Date.now()) {
+  const nextRetryAt = job.next_retry_at ? Date.parse(String(job.next_retry_at)) : null;
+  if (nextRetryAt && Number.isFinite(nextRetryAt) && nextRetryAt > nowMs) {
+    return null;
+  }
+
+  const onboardingJobId = String(job.id);
+  const currentState = String(job.state) as FulfillmentState;
+
+  if (TERMINAL_STATES.has(currentState)) return null;
+  if (RETRYABLE_FAILURE_STATES.has(currentState) && Number(job.retry_count || 0) >= 10) {
+    return { onboardingJobId, state: currentState, errorCode: "RETRY_LIMIT_EXCEEDED" };
+  }
+
+  try {
+    const provisionMode = await resolveProvisionMode(String(job.customer_id));
+
+    await updateJobState({
+      onboardingJobId,
+      nextState: "package_resolved",
+      actor: "system:fulfillment_worker",
+      stage: "package_resolved",
+    });
+
+    const packageIds = Array.isArray(job.package_ids) ? job.package_ids.map((value: unknown) => String(value)) : [];
+    const packageVersions = Array.isArray(job.package_versions)
+      ? job.package_versions.map((value: unknown) => String(value))
+      : [];
+    const packageSources = await packageSourcesForSubscription(String(job.subscription_id));
+    const requestPayloadBase = {
+      contractVersion: String(job.contract_version || "v2"),
+      customerId: String(job.customer_id),
+      fullName: `Customer ${String(job.customer_id)}`,
+      subscriptionId: String(job.subscription_id),
+      roleIds: await roleIdsForSubscription(String(job.subscription_id)),
+      tenantProfile: "runtime_plus_ui_supabase",
+      packageIds,
+      packageVersions,
+      packageSources,
+      packages: buildControlPackages({ packageIds, packageVersions, packageSources }),
+    };
+    const requestPayload = {
+      ...requestPayloadBase,
+      provisionMode,
+    };
+
+    await updateJobState({
+      onboardingJobId,
+      nextState: "tenant_request_sent",
+      actor: "system:fulfillment_worker",
+      stage: "tenant_request_sent",
+      requestPayload,
+    });
+
+    const dispatchResult = await dispatchControlWithAssignFallback({
+      onboardingJobId,
+      subscriptionId: String(job.subscription_id),
+      baseIdempotencyKey: String(job.idempotency_key || buildFulfillmentIdempotencyKey(String(job.subscription_id))),
+      correlationId: String(job.correlation_id || buildFulfillmentCorrelationId()),
+      initialProvisionMode: provisionMode,
+      requestPayload: requestPayloadBase,
+    });
+    const dispatchAttempts = dispatchResult.attempts;
+    const finalAttempt = dispatchResult.final;
+    const finalDispatch: ControlDispatchResponse = {
+      ok: !finalAttempt.errorCode,
+      status: finalAttempt.httpStatus,
+      body: finalAttempt.responseBody || {},
+    };
+
+    for (const attemptLog of dispatchAttempts) {
+      await recordJobEvent({
+        onboardingJobId,
+        state: "tenant_request_sent",
+        stage: "control_dispatch_attempt",
+        detail: {
+          attemptLabel: attemptLog.attemptLabel,
+          provisionMode: attemptLog.provisionMode,
+          idempotencyKey: attemptLog.idempotencyKey,
+          correlationId: attemptLog.correlationId,
+          request_id: attemptLog.requestId,
+          http_status: attemptLog.httpStatus,
+          error_code: attemptLog.errorCode,
+          error_message: attemptLog.errorMessage,
+          transportAttempts: attemptLog.transportAttempts,
+        },
+        actor: "system:fulfillment_worker",
+      }).catch(() => undefined);
     }
 
-    const onboardingJobId = String(job.id);
-    const currentState = String(job.state) as FulfillmentState;
-
-    if (TERMINAL_STATES.has(currentState)) continue;
-    if (RETRYABLE_FAILURE_STATES.has(currentState) && Number(job.retry_count || 0) >= 10) {
-      results.push({ onboardingJobId, state: currentState, errorCode: "RETRY_LIMIT_EXCEEDED" });
-      continue;
-    }
-
-    try {
-      const provisionMode = await resolveProvisionMode(String(job.customer_id));
-
-      await updateJobState({
-        onboardingJobId,
-        nextState: "package_resolved",
-        actor: "system:fulfillment_worker",
-        stage: "package_resolved",
-      });
-
-      const packageIds = Array.isArray(job.package_ids) ? job.package_ids.map((value: unknown) => String(value)) : [];
-      const packageVersions = Array.isArray(job.package_versions)
-        ? job.package_versions.map((value: unknown) => String(value))
-        : [];
-      const packageSources = await packageSourcesForSubscription(String(job.subscription_id));
-      const requestPayloadBase = {
-        contractVersion: String(job.contract_version || "v2"),
-        customerId: String(job.customer_id),
-        fullName: `Customer ${String(job.customer_id)}`,
-        subscriptionId: String(job.subscription_id),
-        roleIds: await roleIdsForSubscription(String(job.subscription_id)),
-        tenantProfile: "runtime_plus_ui_supabase",
-        packageIds,
-        packageVersions,
-        packageSources,
-        packages: buildControlPackages({ packageIds, packageVersions, packageSources }),
-      };
-      const requestPayload = {
-        ...requestPayloadBase,
-        provisionMode,
-      };
-
-      await updateJobState({
-        onboardingJobId,
-        nextState: "tenant_request_sent",
-        actor: "system:fulfillment_worker",
-        stage: "tenant_request_sent",
-        requestPayload,
-      });
-
-      const dispatchResult = await dispatchControlWithAssignFallback({
-        onboardingJobId,
-        subscriptionId: String(job.subscription_id),
-        baseIdempotencyKey: String(job.idempotency_key || buildFulfillmentIdempotencyKey(String(job.subscription_id))),
-        correlationId: String(job.correlation_id || buildFulfillmentCorrelationId()),
-        initialProvisionMode: provisionMode,
-        requestPayload: requestPayloadBase,
-      });
-      const dispatchAttempts = dispatchResult.attempts;
-      const finalAttempt = dispatchResult.final;
-      const finalDispatch: ControlDispatchResponse = {
-        ok: !finalAttempt.errorCode,
-        status: finalAttempt.httpStatus,
-        body: finalAttempt.responseBody || {},
-      };
-
-      for (const attemptLog of dispatchAttempts) {
-        await recordJobEvent({
-          onboardingJobId,
-          state: "tenant_request_sent",
-          stage: "control_dispatch_attempt",
-          detail: {
-            attemptLabel: attemptLog.attemptLabel,
-            provisionMode: attemptLog.provisionMode,
-            idempotencyKey: attemptLog.idempotencyKey,
-            correlationId: attemptLog.correlationId,
-            request_id: attemptLog.requestId,
-            http_status: attemptLog.httpStatus,
-            error_code: attemptLog.errorCode,
-            error_message: attemptLog.errorMessage,
-            transportAttempts: attemptLog.transportAttempts,
-          },
-          actor: "system:fulfillment_worker",
-        }).catch(() => undefined);
-      }
-
-      if (!finalDispatch.ok) {
-        const err = normalizeControlError(finalDispatch.body, finalDispatch.status);
-
-        const nextState: FulfillmentState = "failed";
-        await updateJobState({
-          onboardingJobId,
-          nextState,
-          actor: "system:fulfillment_worker",
-          stage: "control_dispatch",
-          requestPayload: finalAttempt.payload,
-          responsePayload: {
-            ...(finalDispatch.body || {}),
-            controlDispatch: {
-              attempts: dispatchAttempts.map((attempt) => ({
-                attemptLabel: attempt.attemptLabel,
-                provisionMode: attempt.provisionMode,
-                idempotencyKey: attempt.idempotencyKey,
-                request_id: attempt.requestId,
-                http_status: attempt.httpStatus,
-                error_code: attempt.errorCode,
-                error_message: attempt.errorMessage,
-                transportAttempts: attempt.transportAttempts,
-              })),
-            },
-          },
-          errorCode: err.code,
-          errorMessage: err.message,
-        });
-
-        if (!STRICT_ERROR_CODES.has(err.code)) {
-          await incrementRetryCount(onboardingJobId);
-        }
-
-        results.push({ onboardingJobId, state: nextState, errorCode: err.code });
-        continue;
-      }
-
-      const controlState = String(finalDispatch.body.state || finalDispatch.body.status || "in_progress").toLowerCase();
-      const nextState: FulfillmentState = controlState === "completed" ? "completed" : "in_progress";
-
+    if (!finalDispatch.ok) {
+      const err = normalizeControlError(finalDispatch.body, finalDispatch.status);
+      const nextState: FulfillmentState = "failed";
       await updateJobState({
         onboardingJobId,
         nextState,
         actor: "system:fulfillment_worker",
-        stage: "control_response",
+        stage: "control_dispatch",
         requestPayload: finalAttempt.payload,
         responsePayload: {
           ...(finalDispatch.body || {}),
@@ -664,30 +636,76 @@ export async function processFulfillmentJobs(limit = 10) {
             })),
           },
         },
+        errorCode: err.code,
+        errorMessage: err.message,
       });
 
-      results.push({ onboardingJobId, state: nextState });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      await updateJobState({
-        onboardingJobId,
-        nextState: "failed",
-        actor: "system:fulfillment_worker",
-        stage: "worker_exception",
-        errorCode: "FULFILLMENT_WORKER_ERROR",
-        errorMessage: message,
-      }).catch(() => undefined);
+      if (!STRICT_ERROR_CODES.has(err.code)) {
+        await incrementRetryCount(onboardingJobId);
+      }
 
-      await incrementRetryCount(onboardingJobId).catch(() => undefined);
-
-      results.push({ onboardingJobId, state: "failed", errorCode: "FULFILLMENT_WORKER_ERROR" });
+      return { onboardingJobId, state: nextState, errorCode: err.code };
     }
+
+    const controlState = String(finalDispatch.body.state || finalDispatch.body.status || "in_progress").toLowerCase();
+    const nextState: FulfillmentState = controlState === "completed" ? "completed" : "in_progress";
+
+    await updateJobState({
+      onboardingJobId,
+      nextState,
+      actor: "system:fulfillment_worker",
+      stage: "control_response",
+      requestPayload: finalAttempt.payload,
+      responsePayload: {
+        ...(finalDispatch.body || {}),
+        controlDispatch: {
+          attempts: dispatchAttempts.map((attempt) => ({
+            attemptLabel: attempt.attemptLabel,
+            provisionMode: attempt.provisionMode,
+            idempotencyKey: attempt.idempotencyKey,
+            request_id: attempt.requestId,
+            http_status: attempt.httpStatus,
+            error_code: attempt.errorCode,
+            error_message: attempt.errorMessage,
+            transportAttempts: attempt.transportAttempts,
+          })),
+        },
+      },
+    });
+
+    return { onboardingJobId, state: nextState };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await updateJobState({
+      onboardingJobId,
+      nextState: "failed",
+      actor: "system:fulfillment_worker",
+      stage: "worker_exception",
+      errorCode: "FULFILLMENT_WORKER_ERROR",
+      errorMessage: message,
+    }).catch(() => undefined);
+
+    await incrementRetryCount(onboardingJobId).catch(() => undefined);
+
+    return { onboardingJobId, state: "failed", errorCode: "FULFILLMENT_WORKER_ERROR" };
+  }
+}
+
+export async function processFulfillmentJobById(onboardingJobId: string) {
+  const { data, error } = await db
+    .from("onboarding_jobs")
+    .select(
+      "id,user_id,subscription_id,customer_id,idempotency_key,correlation_id,state,contract_version,tenant_profile,sku_codes,package_ids,package_versions,retry_count,next_retry_at"
+    )
+    .eq("id", onboardingJobId)
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message || "Onboarding job not found");
   }
 
-  return {
-    processed: results.length,
-    results,
-  };
+  const result = await processFulfillmentJob(data as Record<string, unknown>);
+  return result || { onboardingJobId, state: String(data.state || "payment_confirmed") };
 }
 
 export async function controlPackageRetry(params: {

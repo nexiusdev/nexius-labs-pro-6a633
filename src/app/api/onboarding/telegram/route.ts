@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getUserIdFromRequest } from "@/lib/auth-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { ensureFulfillmentJob } from "@/lib/fulfillment";
+import { ensureFulfillmentJob, processFulfillmentJobById } from "@/lib/fulfillment";
 import { buildPurchaseSnapshot } from "@/lib/purchase-snapshot";
 import { mapStatus } from "@/lib/portal-data";
 
@@ -240,11 +240,18 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const immediate = await processFulfillmentJobById(ensured.onboardingJobId).catch((error) => ({
+    onboardingJobId: ensured.onboardingJobId,
+    state: retry ? "payment_confirmed" : ensured.state,
+    error: error instanceof Error ? error.message : "Immediate dispatch failed",
+  }));
+
   return NextResponse.json({
     ok: true,
     onboardingJobId: ensured.onboardingJobId,
-    state: retry ? "payment_confirmed" : ensured.state,
+    state: typeof immediate.state === "string" ? immediate.state : retry ? "payment_confirmed" : ensured.state,
     idempotencyKey: ensured.idempotencyKey,
     retried: retry,
+    immediate,
   });
 }
