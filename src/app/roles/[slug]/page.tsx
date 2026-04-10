@@ -10,6 +10,8 @@ import ShortlistButton from "@/components/ShortlistButton";
 import Footer from "@/components/Footer";
 import { buildPaymentLink, formatSgd, getRolePricing } from "@/lib/pricing";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   try {
     const roles = await getAllRolesDb();
@@ -260,5 +262,4 @@ export default async function RoleDetailPage({
     </>
   );
 }
-
 
