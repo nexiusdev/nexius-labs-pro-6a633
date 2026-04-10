@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getUserFromRequest, isFulfillmentAdmin } from "@/lib/auth-server";
+import { ADMIN_MUTATION_ALLOWED, requireRole } from "@/lib/rbac";
 import { replayPaymentEvent } from "@/lib/airwallex-webhook";
 
 export async function POST(req: NextRequest) {
-  const user = await getUserFromRequest(req);
-  if (!user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  if (!isFulfillmentAdmin(user.id)) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  const auth = await requireRole(req, ADMIN_MUTATION_ALLOWED);
+  if (!auth.ok) return auth.response;
 
   const body = (await req.json().catch(() => ({}))) as { paymentEventId?: unknown };
   const paymentEventId = String(body.paymentEventId || "").trim();

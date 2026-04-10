@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 
-import RoleGuard from "@/components/guards/RoleGuard";
+import AdminAccessGuard from "@/components/admin/AdminAccessGuard";
+import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "Dashboard" },
@@ -16,27 +17,29 @@ const adminLinks = [
 
 export default function AdminShell(props: { title: string; children: React.ReactNode }) {
   return (
-    <RoleGuard
-      allowedRoles={["super_admin", "ops_admin", "support_admin", "read_only_admin"]}
-      fallbackPath="/portal/workspace"
-    >
+    <AdminAccessGuard fallbackPath="/admin/login">
       <div className="space-y-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6">
-          <h1 className="text-2xl font-bold text-slate-900">{props.title}</h1>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {adminLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">{props.title}</h1>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {adminLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <AdminLogoutButton />
           </div>
         </div>
         {props.children}
       </div>
-    </RoleGuard>
+    </AdminAccessGuard>
   );
 }

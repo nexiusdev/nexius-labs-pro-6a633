@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getUserFromRequest, isFulfillmentAdmin } from "@/lib/auth-server";
+import { ADMIN_ALLOWED, requireRole } from "@/lib/rbac";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const db = supabaseAdmin.schema("nexius_os");
 
 export async function GET(req: NextRequest) {
-  const user = await getUserFromRequest(req);
-  if (!user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  if (!isFulfillmentAdmin(user.id)) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  const auth = await requireRole(req, ADMIN_ALLOWED);
+  if (!auth.ok) return auth.response;
 
   const stateFilter = (req.nextUrl.searchParams.get("state") || "").trim();
   const errorStage = (req.nextUrl.searchParams.get("error_stage") || "").trim();

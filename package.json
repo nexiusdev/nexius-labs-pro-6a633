@@ -14,7 +14,8 @@
     "worker:fulfillment:loop": "tsx scripts/fulfillment-worker-loop.ts",
     "worker:fulfillment:reconcile-stuck": "tsx scripts/reconcile-stuck-onboarding-jobs.ts",
     "reconcile:payment-fulfillment": "tsx scripts/reconcile-payment-fulfillment.ts",
-    "test:integration:fulfillment": "tsx --test tests/integration/fulfillment-fallback.integration.test.ts"
+    "test:integration:fulfillment": "tsx --test tests/integration/fulfillment-fallback.integration.test.ts",
+    "admin:create-user": "tsx scripts/create-admin-user.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

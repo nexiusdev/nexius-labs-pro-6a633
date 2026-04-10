@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getUserFromRequest, isFulfillmentAdmin } from "@/lib/auth-server";
+import { ADMIN_MUTATION_ALLOWED, requireRole } from "@/lib/rbac";
 import { processFulfillmentJobs } from "@/lib/fulfillment";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const db = supabaseAdmin.schema("nexius_os");
 
 export async function POST(req: NextRequest) {
-  const user = await getUserFromRequest(req);
-  if (!user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  if (!isFulfillmentAdmin(user.id)) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  const auth = await requireRole(req, ADMIN_MUTATION_ALLOWED);
+  if (!auth.ok) return auth.response;
 
   const body = (await req.json().catch(() => ({}))) as { jobId?: unknown; runWorker?: unknown };
   const jobId = String(body.jobId || "").trim();
@@ -25,7 +24,7 @@ export async function POST(req: NextRequest) {
       error_stage: null,
       next_retry_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      updated_by: `admin:${user.id}`,
+      updated_by: `admin:${auth.user.id}`,
       last_action: "admin_retry",
       last_action_at: new Date().toISOString(),
     })
@@ -38,7 +37,7 @@ export async function POST(req: NextRequest) {
     state: "payment_confirmed",
     stage: "admin_retry",
     detail: { trigger: "admin_ui" },
-    actor: `admin:${user.id}`,
+    actor: `admin:${auth.user.id}`,
   });
 
   const shouldRun = body.runWorker !== false;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { getUserFromRequest, isFulfillmentAdmin } from "@/lib/auth-server";
 
 export type AdminRole = "super_admin" | "ops_admin" | "support_admin" | "read_only_admin";
@@ -52,6 +53,19 @@ export function isAdminRole(role: AppRole) {
 }
 
 export async function requireRole(req: NextRequest, allowed: AppRole[]) {
+  const adminSession = await getAdminSessionFromRequest(req).catch(() => null);
+  if (adminSession && allowed.includes(adminSession.role)) {
+    return {
+      ok: true as const,
+      user: {
+        id: adminSession.adminUserId,
+        user_metadata: { username: adminSession.username, auth_type: "admin_session" },
+      },
+      role: adminSession.role,
+      adminSession,
+    };
+  }
+
   const user = await getUserFromRequest(req);
   if (!user) {
     return {
