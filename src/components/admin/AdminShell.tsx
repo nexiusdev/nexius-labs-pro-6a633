@@ -10,7 +10,7 @@ const adminLinks = [
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/jobs", label: "Jobs" },
-  { href: "/admin/vps", label: "VPS" },
+  { href: "/admin/vps", label: "Assigned" },
   { href: "/admin/entitlements", label: "Entitlements" },
   { href: "/admin/audit", label: "Audit" },
 ];
