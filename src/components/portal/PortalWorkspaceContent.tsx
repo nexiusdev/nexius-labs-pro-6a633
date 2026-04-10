@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { getAuthHeaders } from "@/lib/auth-client";
+import { hasRuntimeUrls } from "@/lib/runtime-url-ui";
 
 type ActivationState = "ready" | "installing" | "needs_action";
 
@@ -11,6 +12,12 @@ type WorkspaceState = {
   onboardingState?: string;
   activationState?: ActivationState;
   installedScope?: string[];
+  customerId?: string | null;
+  urls?: {
+    webchatUrl: string | null;
+    erpUrl: string | null;
+    source?: string | null;
+  };
   latestJobId?: string | null;
   latestUpdatedAt?: string | null;
 };
@@ -142,6 +149,30 @@ export default function PortalWorkspaceContent() {
           <p className="mt-1 text-sm text-emerald-800">
             Your environment is active. Manage context and agent settings from the portal navigation.
           </p>
+          {hasRuntimeUrls(workspace.urls || null) ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {workspace.urls?.webchatUrl ? (
+                <a
+                  href={workspace.urls.webchatUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  Open Webchat
+                </a>
+              ) : null}
+              {workspace.urls?.erpUrl ? (
+                <a
+                  href={workspace.urls.erpUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-900"
+                >
+                  Open ERP
+                </a>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

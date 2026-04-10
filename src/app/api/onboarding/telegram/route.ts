@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ensureFulfillmentJob, processFulfillmentJobById } from "@/lib/fulfillment";
 import { buildPurchaseSnapshot } from "@/lib/purchase-snapshot";
 import { mapStatus } from "@/lib/portal-data";
+import { buildOnboardingJobUrlsFromDb } from "@/lib/runtime-url-api";
 
 const db = supabaseAdmin.schema("nexius_os");
 
@@ -81,6 +82,7 @@ export async function GET(req: NextRequest) {
   }
 
   const timeline = await loadJobEvents(String(job.id));
+  const runtimeUrls = buildOnboardingJobUrlsFromDb(job);
 
   return NextResponse.json({
     ok: true,
@@ -97,6 +99,7 @@ export async function GET(req: NextRequest) {
       errorStage: job.error_stage ? String(job.error_stage) : null,
       requestPayload: job.request_payload || {},
       responsePayload: job.response_payload || {},
+      urls: runtimeUrls,
       updatedAt: job.updated_at ? String(job.updated_at) : null,
     },
     timeline: timeline.map((item) => ({

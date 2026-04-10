@@ -28,6 +28,7 @@ Keep payment-to-install fulfillment processing active continuously on the websit
 Required control-plane env vars:
 - `NEXIUS_CONTROL_BASE_URL` (or `NEXIUS_CONTROL_ONBOARDING_URL`)
 - `NEXIUS_CONTROL_ONBOARDING_TOKEN`
+- `NEXIUS_CONTROL_PUBLIC_BASE_URL` (recommended for canonical tenant URL rendering)
 
 ## Recommended systemd unit
 

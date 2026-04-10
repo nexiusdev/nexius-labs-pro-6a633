@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { redactSensitive } from "@/lib/redaction";
+import { buildTenantRuntimeUrls } from "@/lib/tenant-runtime-urls";
 
 const db = supabaseAdmin.schema("nexius_os");
 
@@ -96,7 +97,7 @@ export async function getClientDetail(clientId: string) {
       .order("updated_at", { ascending: false }),
     db
       .from("onboarding_jobs")
-      .select("id,customer_id,subscription_id,state,error_code,error_message,error_stage,retry_count,provision_mode,created_at,updated_at")
+      .select("id,customer_id,subscription_id,state,error_code,error_message,error_stage,retry_count,provision_mode,request_payload,response_payload,created_at,updated_at")
       .eq("customer_id", clientId)
       .order("updated_at", { ascending: false })
       .limit(100),
@@ -118,6 +119,18 @@ export async function getClientDetail(clientId: string) {
       .select("id,user_id,status,monthly_amount,currency,role_ids,provider_subscription_id,created_at,updated_at")
       .in("id", subscriptionIds);
   if (subscriptionsRes.error) throw new Error(subscriptionsRes.error.message);
+  const latestJob = (jobsRes.data || [])[0] || null;
+  const runtimeUrls = latestJob
+    ? buildTenantRuntimeUrls({
+        customerId: String(latestJob.customer_id || clientId || ""),
+        responsePayload: latestJob.response_payload && typeof latestJob.response_payload === "object"
+          ? latestJob.response_payload as Record<string, unknown>
+          : {},
+        requestPayload: latestJob.request_payload && typeof latestJob.request_payload === "object"
+          ? latestJob.request_payload as Record<string, unknown>
+          : {},
+      })
+    : { webchatUrl: null, erpUrl: null, source: "none" as const };
 
   return {
     customerId: clientId,
@@ -125,6 +138,7 @@ export async function getClientDetail(clientId: string) {
     entitlements: entitlementsRes.data || [],
     jobs: jobsRes.data || [],
     subscriptions: subscriptionsRes.data || [],
+    runtimeUrls,
   };
 }
 

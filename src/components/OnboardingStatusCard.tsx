@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAuthHeaders } from "@/lib/auth-client";
 import { actionableErrorReason, formatFulfillmentStage } from "@/lib/fulfillment-status";
+import { shouldShowOnboardingReadyActions } from "@/lib/runtime-url-ui";
 
 type OnboardingTimelineItem = {
   state: string;
@@ -26,6 +27,11 @@ type OnboardingStatusResponse = {
     retryCount: number;
     requestPayload: Record<string, unknown>;
     responsePayload: Record<string, unknown>;
+    urls?: {
+      webchatUrl: string | null;
+      erpUrl: string | null;
+      source?: string | null;
+    };
     updatedAt: string | null;
   } | null;
   timeline?: OnboardingTimelineItem[];
@@ -212,6 +218,34 @@ export default function OnboardingStatusCard(props: {
           {job.errorStage ? <div className="font-mono text-xs mb-1">stage: {formatFulfillmentStage(job.errorStage)}</div> : null}
           <div>{job.errorMessage}</div>
           <div className="mt-2 text-xs">{actionableErrorReason(job.errorCode)}</div>
+        </div>
+      ) : null}
+
+      {shouldShowOnboardingReadyActions(job.state, job.urls || null) ? (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <div className="font-semibold">Tenant URLs ready</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {job.urls?.webchatUrl ? (
+              <a
+                href={job.urls.webchatUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                Open Webchat
+              </a>
+            ) : null}
+            {job.urls?.erpUrl ? (
+              <a
+                href={job.urls.erpUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-900"
+              >
+                Open ERP
+              </a>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getUserIdFromRequest } from "@/lib/auth-server";
 import { getLatestJobForSubscriptionIds, getUserSubscriptions, mapStatus } from "@/lib/portal-data";
+import { buildWorkspaceUrlsFromLatestJob } from "@/lib/runtime-url-api";
 
 export async function GET(req: NextRequest) {
   const userId = await getUserIdFromRequest(req);
@@ -18,6 +19,8 @@ export async function GET(req: NextRequest) {
     );
 
     const onboardingState = latest?.state ? String(latest.state) : "payment_confirmed";
+    const customerId = latest?.customer_id ? String(latest.customer_id) : "";
+    const runtimeUrls = buildWorkspaceUrlsFromLatestJob(latest);
 
     return NextResponse.json({
       ok: true,
@@ -25,6 +28,8 @@ export async function GET(req: NextRequest) {
         onboardingState,
         activationState: mapStatus(onboardingState),
         installedScope: [...new Set(installedScope)],
+        customerId: customerId || null,
+        urls: runtimeUrls,
         latestJobId: latest?.id ? String(latest.id) : null,
         latestUpdatedAt: latest?.updated_at ? String(latest.updated_at) : null,
       },

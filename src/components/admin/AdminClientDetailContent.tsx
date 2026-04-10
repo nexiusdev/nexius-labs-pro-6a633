@@ -52,6 +52,11 @@ type ClientDetail = {
   entitlements: Entitlement[];
   jobs: Job[];
   subscriptions: Subscription[];
+  runtimeUrls?: {
+    webchatUrl: string | null;
+    erpUrl: string | null;
+    source?: string | null;
+  };
 };
 
 function formatDate(value?: string | null) {
@@ -199,6 +204,36 @@ export default function AdminClientDetailContent(props: { clientId: string }) {
                 <div className="text-xs uppercase tracking-[0.16em] text-blue-700">Current Commercial Package</div>
                 <div className="mt-2 text-sm font-semibold text-slate-900">{activeSubscription.status || "unknown"} subscription</div>
                 <div className="mt-1 text-sm text-slate-600">{formatMoney(activeSubscription.monthly_amount, activeSubscription.currency)} monthly</div>
+              </div>
+            ) : null}
+            {(detail.runtimeUrls?.webchatUrl || detail.runtimeUrls?.erpUrl) ? (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-emerald-700">Tenant URLs</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {detail.runtimeUrls?.webchatUrl ? (
+                    <a
+                      href={detail.runtimeUrls.webchatUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
+                    >
+                      Open Webchat
+                    </a>
+                  ) : null}
+                  {detail.runtimeUrls?.erpUrl ? (
+                    <a
+                      href={detail.runtimeUrls.erpUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-900"
+                    >
+                      Open ERP
+                    </a>
+                  ) : null}
+                </div>
+                <div className="mt-2 text-xs text-emerald-900">
+                  Source: {detail.runtimeUrls?.source || "resolved"}
+                </div>
               </div>
             ) : null}
           </div>
