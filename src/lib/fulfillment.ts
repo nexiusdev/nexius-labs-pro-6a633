@@ -49,6 +49,33 @@ export type ControlDispatchAttemptLog = {
   payload: Record<string, unknown>;
 };
 
+function parseControlState(payload: Record<string, unknown>) {
+  const state = String(payload.state || payload.status || "").trim().toLowerCase();
+  const workflowState = String(payload.workflow_state || payload.workflowStatus || "").trim().toLowerCase();
+  const combined = [state, workflowState].filter(Boolean);
+
+  if (combined.includes("completed") || combined.includes("complete") || combined.includes("succeeded") || combined.includes("success")) {
+    return "completed" as const;
+  }
+  if (combined.includes("failed") || combined.includes("error")) {
+    return "failed" as const;
+  }
+  return "in_progress" as const;
+}
+
+function extractTenantId(payload: Record<string, unknown>) {
+  const candidates = [
+    payload.tenant_id,
+    payload.tenantId,
+    payload.workspace_id,
+    payload.workspaceId,
+    payload.runtime_container,
+    payload.runtimeContainer,
+  ];
+  const value = candidates.find((candidate) => typeof candidate === "string" && candidate.trim());
+  return typeof value === "string" ? value.trim() : null;
+}
+
 function controlConfig() {
   const token = (process.env.NEXIUS_CONTROL_ONBOARDING_TOKEN || "").trim();
 
@@ -647,8 +674,7 @@ async function processFulfillmentJob(job: Record<string, unknown>, nowMs = Date.
       return { onboardingJobId, state: nextState, errorCode: err.code };
     }
 
-    const controlState = String(finalDispatch.body.state || finalDispatch.body.status || "in_progress").toLowerCase();
-    const nextState: FulfillmentState = controlState === "completed" ? "completed" : "in_progress";
+    const nextState: FulfillmentState = parseControlState(finalDispatch.body);
 
     await updateJobState({
       onboardingJobId,
@@ -906,5 +932,87 @@ export async function reconcileStuckInProgressJobs(limit = 10) {
     processed: reconciled.length,
     staleMinutes,
     reconciled,
+  };
+}
+
+export async function syncOnboardingJobFromControl(params: {
+  onboardingJobId?: string;
+  customerId?: string;
+  requestId?: string;
+  responsePayload: Record<string, unknown>;
+  actor?: string;
+}) {
+  let query = db
+    .from("onboarding_jobs")
+    .select("id,customer_id,request_id,state")
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  if (params.onboardingJobId) {
+    query = query.eq("id", params.onboardingJobId);
+  } else if (params.requestId) {
+    query = query.eq("request_id", params.requestId);
+  } else if (params.customerId) {
+    query = query.eq("customer_id", params.customerId);
+  } else {
+    throw new Error("onboardingJobId, requestId, or customerId is required");
+  }
+
+  const { data: job, error } = await query.maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!job?.id) throw new Error("Onboarding job not found");
+
+  const actor = params.actor || "system:control_callback";
+  const nextState = parseControlState(params.responsePayload);
+  const errorCode =
+    nextState === "failed"
+      ? String(params.responsePayload.error_code || params.responsePayload.errorCode || "NEXIUS_CONTROL_ONBOARDING_FAILED")
+      : null;
+  const errorMessage =
+    nextState === "failed"
+      ? String(params.responsePayload.error_message || params.responsePayload.errorMessage || params.responsePayload.message || "Control onboarding failed")
+      : null;
+
+  await updateJobState({
+    onboardingJobId: String(job.id),
+    nextState,
+    actor,
+    stage: "control_reconcile",
+    responsePayload: params.responsePayload,
+    errorCode,
+    errorMessage,
+    nextRetryAt: nextState === "completed" ? null : undefined,
+  });
+
+  if (nextState === "completed") {
+    const tenantId = extractTenantId(params.responsePayload);
+    if (tenantId) {
+      const customerId =
+        String(params.responsePayload.customer_id || params.responsePayload.customerId || job.customer_id || params.customerId || "").trim();
+      if (customerId) {
+        const now = new Date().toISOString();
+        const { error: mappingError } = await db.from("customer_tenant_mappings").upsert(
+          {
+            customer_id: customerId,
+            tenant_id: tenantId,
+            status: "active",
+            updated_at: now,
+            updated_by: actor,
+            last_action: "control_reconcile_completed",
+            last_action_at: now,
+            created_by: actor,
+          },
+          { onConflict: "customer_id" }
+        );
+        if (mappingError) throw new Error(mappingError.message);
+      }
+    }
+  }
+
+  return {
+    onboardingJobId: String(job.id),
+    customerId: String(job.customer_id || params.customerId || ""),
+    requestId: String(job.request_id || params.requestId || ""),
+    state: nextState,
   };
 }
