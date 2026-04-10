@@ -270,6 +270,19 @@ export async function processAirwallexWebhookEvent(event: AirwallexWebhookEvent)
       });
     }
 
+    if (ids.providerSubscriptionId && String(subscription.provider_subscription_id || "") !== ids.providerSubscriptionId) {
+      await db
+        .from("subscriptions")
+        .update({
+          provider_subscription_id: ids.providerSubscriptionId,
+          contract_version: "v2",
+          tenant_profile: "runtime_plus_ui_supabase",
+          purchase_snapshot: snapshot,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", subscription.id);
+    }
+
     if (isCancelled(eventName)) {
       await db.from("subscriptions").update({ status: "cancelled" }).eq("id", subscription.id);
     } else if (isPastDue(eventName)) {
