@@ -33,10 +33,11 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isAdminRoute = pathname.startsWith("/admin");
   const forceSolid =
     pathname === "/auth" ||
     pathname.startsWith("/payment") ||
-    pathname.startsWith("/admin") ||
+    isAdminRoute ||
     pathname.startsWith("/portal") ||
     pathname.startsWith("/account");
 
@@ -53,6 +54,24 @@ export default function Navigation() {
           <span className="text-blue-400">labs</span>
         </Link>
 
+        {isAdminRoute ? (
+          <>
+            <div className="hidden md:flex items-center gap-3">
+              <div className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100">
+                Admin Console
+              </div>
+            </div>
+
+            <button
+              className="md:hidden text-white p-2"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle admin menu"
+            >
+              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </>
+        ) : (
+          <>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
           {pages.map(({ href, label }) => (
@@ -137,12 +156,38 @@ export default function Navigation() {
         >
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+          </>
+        )}
       </div>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="md:hidden bg-slate-900/98 backdrop-blur-md absolute inset-x-0 top-16 bottom-0 min-h-[calc(100vh-4rem)]">
           <div className="container-wide py-8 flex flex-col gap-6">
+            {isAdminRoute ? (
+              <>
+                <div className="rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nexius</div>
+                  <div className="mt-1 text-lg font-semibold text-white">Admin Console</div>
+                  <div className="mt-1 text-sm text-slate-300">Internal operations surface</div>
+                </div>
+                <Link
+                  href="/admin/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-medium text-slate-200 hover:text-white transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/admin/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="border border-slate-600 text-slate-200 text-center rounded-full px-4 py-3 text-sm font-medium transition-colors"
+                >
+                  Admin Login
+                </Link>
+              </>
+            ) : (
+              <>
             {pages.map(({ href, label }) => (
               <Link
                 key={href}
@@ -212,6 +257,8 @@ export default function Navigation() {
                 Free Consultation
               </Link>
             </div>
+              </>
+            )}
           </div>
         </div>
       )}
