@@ -33,7 +33,12 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const forceSolid = pathname === "/auth" || pathname.startsWith("/payment");
+  const forceSolid =
+    pathname === "/auth" ||
+    pathname.startsWith("/payment") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/portal") ||
+    pathname.startsWith("/account");
 
   return (
     <nav
